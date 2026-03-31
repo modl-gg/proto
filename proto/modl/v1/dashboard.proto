@@ -1,0 +1,45 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message DashboardMetricsResponse {
+  int64 total_tickets = 1;
+  int64 open_tickets = 2;
+  int64 total_players = 3;
+  int64 total_punishments = 4;
+  int64 active_punishments = 5;
+  int64 total_staff = 6;
+  int32 tickets_trend = 7;
+  int32 players_trend = 8;
+}
+
+message ActivityItemResponse {
+  string id = 1;
+  string type = 2;
+  string description = 3;
+  optional string actor = 4;
+  google.protobuf.Timestamp timestamp = 5;
+}
+
+message MinecraftDashboardStatsResponse {
+  int32 online_players = 1;
+  int64 total_punishments_today = 2;
+  int64 total_tickets_today = 3;
+}
+
+message RecentPunishmentSummary {
+  string id = 1;
+  string player_username = 2;
+  string type = 3;
+  optional string reason = 4;
+  google.protobuf.Timestamp issued = 5;
+}
+
+message RecentTicketSummary {
+  string id = 1;
+  optional string subject = 2;
+  string type = 3;
+  string status = 4;
+  google.protobuf.Timestamp date = 5;
+}

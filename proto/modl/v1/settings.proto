@@ -1,0 +1,81 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "buf/validate/validate.proto";
+
+// --- Requests ---
+
+message PunishmentTypeRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 2, max_len: 64}];
+  string description = 2 [(buf.validate.field).string.max_len = 500];
+  int32 points = 3 [(buf.validate.field).int32 = {gte: 0, lte: 1000}];
+  optional string category = 4 [(buf.validate.field).string.max_len = 64];
+}
+
+message PatchGeneralSettingsRequest {
+  google.protobuf.Struct settings = 1;
+}
+
+message PatchTicketFormSettingsRequest {
+  google.protobuf.Struct settings = 1;
+}
+
+message PatchTicketLabelSettingsRequest {
+  google.protobuf.Struct settings = 1;
+}
+
+message PatchQuickResponsesRequest {
+  google.protobuf.Struct settings = 1;
+}
+
+message UpdateQuickResponsesRequest {
+  google.protobuf.Struct responses = 1;
+}
+
+message PatchStatusThresholdSettingsRequest {
+  google.protobuf.Struct settings = 1;
+}
+
+message ConfigureDomainRequest {
+  string domain = 1 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
+}
+
+message VerifyDomainRequest {
+  string domain = 1;
+}
+
+message UpdateAIModerationSettingsRequest {
+  optional bool enable_ai_review = 1;
+  optional bool enable_automated_actions = 2;
+  map<string, AIPunishmentConfigRequest> ai_punishment_configs = 3;
+}
+
+message AIPunishmentConfigRequest {
+  string id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string ai_description = 3 [(buf.validate.field).string = {min_len: 1, max_len: 500}];
+  optional bool enabled = 4;
+}
+
+message UpdateWebhookSettingsRequest {
+  google.protobuf.Struct settings = 1;
+}
+
+message ApplyAIPunishmentRequest {
+  string punishment_config_id = 1;
+  string player_uuid = 2;
+  google.protobuf.Struct context = 3;
+}
+
+// --- Responses ---
+
+message PublicSettingsResponse {
+  bool server_exists = 1;
+  optional string server_display_name = 2;
+  optional string panel_icon_url = 3;
+  optional string homepage_icon_url = 4;
+  google.protobuf.Struct ticket_forms = 5;
+  bool maintenance_mode = 6;
+  optional string maintenance_message = 7;
+}

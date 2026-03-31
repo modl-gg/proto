@@ -1,0 +1,30 @@
+syntax = "proto3";
+package modl.v1;
+
+import "buf/validate/validate.proto";
+
+message CreateKBArticleRequest {
+  string title = 1 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
+  string content = 2 [(buf.validate.field).string = {min_len: 1, max_len: 50000}];
+  optional bool is_visible = 3;
+}
+
+message UpdateKBArticleRequest {
+  optional string title = 1 [(buf.validate.field).string.max_len = 256];
+  optional string content = 2 [(buf.validate.field).string.max_len = 50000];
+  optional bool is_visible = 3;
+}
+
+message CreateKBCategoryRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
+  optional string description = 2 [(buf.validate.field).string.max_len = 500];
+}
+
+message UpdateKBCategoryRequest {
+  optional string name = 1 [(buf.validate.field).string.max_len = 128];
+  optional string description = 2 [(buf.validate.field).string.max_len = 500];
+}
+
+message KBReorderRequest {
+  repeated string ids = 1;
+}

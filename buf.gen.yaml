@@ -1,0 +1,22 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: java_multiple_files
+      value: true
+      module: buf.build/modl-gg/proto
+    - file_option: java_package_prefix
+      value: gg.modl.proto
+      module: buf.build/modl-gg/proto
+plugins:
+  - remote: buf.build/protocolbuffers/java
+    out: gen/java
+  - local: protoc-gen-ts_proto
+    out: gen/ts
+    opt:
+      - onlyTypes=true
+      - stringEnums=true
+      - useOptionals=messages
+      - snakeToCamel=true
+      - exportCommonSymbols=false
+      - unrecognizedEnum=false

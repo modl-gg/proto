@@ -1,0 +1,228 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+import "modl/v1/common.proto";
+
+// --- Shared data types ---
+
+message TicketReply {
+  string id = 1;
+  string name = 2;
+  string content = 3;
+  optional string type = 4;
+  google.protobuf.Timestamp date = 5;
+  bool staff = 6;
+  optional string avatar = 7;
+  optional string action = 8;
+  repeated google.protobuf.Struct attachments = 9;
+  optional string creator_identifier = 10;
+}
+
+message TicketNote {
+  string id = 1;
+  string text = 2;
+  google.protobuf.Timestamp date = 3;
+  optional string avatar = 4;
+  optional string type = 5;
+}
+
+message TicketChatMessage {
+  string player = 1;
+  string message = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message AIAnalysisResult {
+  optional string summary = 1;
+  optional string suggested_action = 2;
+  optional double confidence = 3;
+}
+
+// --- Requests ---
+
+message CreateTicketRequest {
+  string type = 1 [(buf.validate.field).string = {
+    min_len: 1,
+    pattern: "^(bug|bug_report|player|player_report|chat|chat_report|appeal|ban_appeal|application|staff|staff_application|apply|support|general_support)$"
+  }];
+  optional string subject = 2 [(buf.validate.field).string.max_len = 256];
+  optional string description = 3 [(buf.validate.field).string.max_len = 10000];
+  optional string creator_uuid = 4 [(buf.validate.field).string.pattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"];
+  optional string creator_name = 5 [(buf.validate.field).string.max_len = 16];
+  optional string creator_email = 6 [(buf.validate.field).string.max_len = 254];
+  optional string reported_player_uuid = 7;
+  optional string reported_player_name = 8 [(buf.validate.field).string.max_len = 16];
+  repeated google.protobuf.Struct chat_messages = 9 [(buf.validate.field).repeated.max_items = 100];
+  google.protobuf.Struct form_data = 10;
+  repeated google.protobuf.Struct attachments = 11 [(buf.validate.field).repeated.max_items = 20];
+  repeated string tags = 12 [(buf.validate.field).repeated.max_items = 20];
+  optional string priority = 13 [(buf.validate.field).string.pattern = "^(low|minor|normal|medium|default|standard|high|urgent|critical|highest)$"];
+  optional string creator_identifier = 14 [(buf.validate.field).string.max_len = 256];
+  optional bool email_auth_enabled = 15;
+  map<string, string> field_labels = 16;
+}
+
+message UpdateTicketRequest {
+  optional string status = 1 [(buf.validate.field).string.max_len = 32];
+  optional bool locked = 2;
+  optional AddTicketReplyRequest new_reply = 3;
+  optional AddTicketNoteRequest new_note = 4;
+  repeated string tags = 5 [(buf.validate.field).repeated.max_items = 20];
+  google.protobuf.Struct data = 6;
+  optional bool hidden = 7;
+  repeated string assigned_to = 8 [(buf.validate.field).repeated.max_items = 20];
+}
+
+message AddTicketReplyRequest {
+  string name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string content = 2 [(buf.validate.field).string = {min_len: 1, max_len: 10000}];
+  optional string type = 3 [(buf.validate.field).string.max_len = 32];
+  bool staff = 4;
+  optional string avatar = 5 [(buf.validate.field).string.max_len = 2048];
+  repeated google.protobuf.Struct attachments = 6 [(buf.validate.field).repeated.max_items = 20];
+  optional string action = 7 [(buf.validate.field).string.max_len = 64];
+  optional string creator_identifier = 8 [(buf.validate.field).string.max_len = 256];
+}
+
+message AddTicketNoteRequest {
+  string text = 1 [(buf.validate.field).string = {min_len: 1, max_len: 4000}];
+  optional string avatar = 2 [(buf.validate.field).string.max_len = 2048];
+  optional string type = 3 [(buf.validate.field).string.max_len = 32];
+}
+
+message AddTicketTagRequest {
+  string tag = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message AssignTicketRequest {
+  string assigned_to = 1;
+}
+
+message BulkTicketUpdateRequest {
+  repeated string ticket_ids = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 100}];
+  optional bool locked = 2;
+  repeated string add_labels = 3 [(buf.validate.field).repeated.max_items = 50];
+  repeated string remove_labels = 4 [(buf.validate.field).repeated.max_items = 50];
+  optional string assign_to = 5 [(buf.validate.field).string.max_len = 256];
+  optional bool hidden = 6;
+}
+
+message TicketQuickResponseRequest {
+  string action = 1 [(buf.validate.field).string.min_len = 1];
+  optional string reason = 2;
+  optional string severity = 3;
+  google.protobuf.Struct metadata = 4;
+}
+
+message DismissTicketReportRequest {
+  string dismissed_by = 1;
+  optional string reason = 2;
+}
+
+message ResolveTicketReportRequest {
+  string resolved_by = 1;
+  optional string resolution = 2;
+  optional string punishment_id = 3;
+}
+
+message ClaimTicketRequest {
+  string claimer_uuid = 1;
+  string claimer_name = 2;
+}
+
+message GetTicketsByIdsRequest {
+  repeated string ticket_ids = 1;
+}
+
+message VerifyTicketCodeRequest {
+  string code = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+// --- Responses ---
+
+message TicketResponse {
+  string id = 1;
+  string type = 2;
+  optional string category = 3;
+  optional string subject = 4;
+  string status = 5;
+  optional string appeal_workflow_status = 6;
+  optional string creator_name = 7;
+  optional string creator_uuid = 8;
+  optional string reported_by = 9;
+  optional string reported_player = 10;
+  optional string reported_player_uuid = 11;
+  google.protobuf.Timestamp date = 12;
+  bool locked = 13;
+  optional bool email_auth_enabled = 14;
+  optional bool hidden = 15;
+  repeated TicketReply messages = 16;
+  repeated TicketNote notes = 17;
+  repeated string tags = 18;
+  repeated string assigned_to = 19;
+  google.protobuf.Struct form_data = 20;
+  google.protobuf.Struct data = 21;
+  repeated TicketChatMessage chat_messages = 22;
+  optional AIAnalysisResult ai_analysis = 23;
+  optional string replay_url = 24;
+}
+
+message TicketListItemResponse {
+  string id = 1;
+  optional string subject = 2;
+  string status = 3;
+  optional string reported_by = 4;
+  optional string reported_by_name = 5;
+  optional string category = 6;
+  string type = 7;
+  google.protobuf.Timestamp date = 8;
+  bool locked = 9;
+  optional bool hidden = 10;
+  optional TicketReply last_reply = 11;
+  int32 reply_count = 12;
+  repeated string tags = 13;
+  repeated string assigned_to = 14;
+}
+
+message PaginatedTicketsResponse {
+  repeated TicketListItemResponse tickets = 1;
+  PaginationInfo pagination = 2;
+  TicketFiltersInfo filters = 3;
+
+  message TicketFiltersInfo {
+    optional string search = 1;
+    optional string status = 2;
+    repeated string types = 3;
+  }
+}
+
+message TicketsResponse {
+  repeated TicketResponse tickets = 1;
+}
+
+message CreateTicketResponse {
+  string id = 1;
+  optional string message = 2;
+}
+
+message ClaimTicketResponse {
+  bool success = 1;
+  optional string message = 2;
+}
+
+message TicketQuickResponseResult {
+  bool success = 1;
+  optional string message = 2;
+  optional string ticket_id = 3;
+  optional string action_name = 4;
+  optional bool ticket_closed = 5;
+  optional bool punishment_issued = 6;
+  optional string appeal_outcome = 7;
+}
+
+message TicketReportsResponse {
+  repeated TicketResponse reports = 1;
+}

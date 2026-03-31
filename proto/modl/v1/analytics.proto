@@ -1,0 +1,61 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message AnalyticsOverviewResponse {
+  int64 total_tickets = 1;
+  int64 total_players = 2;
+  int64 total_staff = 3;
+  int64 active_tickets = 4;
+  int32 ticket_change = 5;
+  int32 player_change = 6;
+}
+
+message PlayerActivityResponse {
+  repeated DataPoint data_points = 1;
+
+  message DataPoint {
+    google.protobuf.Timestamp date = 1;
+    int64 count = 2;
+  }
+}
+
+message PunishmentAnalyticsResponse {
+  repeated TypeCount by_type = 1;
+  repeated DataPoint over_time = 2;
+
+  message TypeCount {
+    string type = 1;
+    int64 count = 2;
+  }
+
+  message DataPoint {
+    google.protobuf.Timestamp date = 1;
+    int64 count = 2;
+  }
+}
+
+message TicketAnalyticsResponse {
+  repeated StatusCount by_status = 1;
+  repeated DataPoint over_time = 2;
+
+  message StatusCount {
+    string status = 1;
+    int64 count = 2;
+  }
+
+  message DataPoint {
+    google.protobuf.Timestamp date = 1;
+    int64 count = 2;
+  }
+}
+
+message AuditLogsAnalyticsResponse {
+  repeated ActionCount by_action = 1;
+
+  message ActionCount {
+    string action = 1;
+    int64 count = 2;
+  }
+}

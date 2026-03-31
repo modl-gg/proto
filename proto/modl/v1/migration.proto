@@ -1,0 +1,86 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+message StartMigrationRequest {
+  string type = 1;
+  google.protobuf.Struct config = 2;
+}
+
+message UpdateMigrationProgressRequest {
+  string task_id = 1;
+  string status = 2;
+  int32 progress = 3;
+  optional string message = 4;
+}
+
+message MigrationStatusResponse {
+  string task_id = 1;
+  string type = 2;
+  string status = 3;
+  int32 progress = 4;
+  optional string message = 5;
+  google.protobuf.Timestamp started_at = 6;
+  optional google.protobuf.Timestamp completed_at = 7;
+}
+
+message MigrationPlayerData {
+  string minecraft_uuid = 1;
+  repeated MigrationUsername usernames = 2;
+  repeated MigrationNote notes = 3;
+  repeated MigrationIP ip_addresses = 4;
+  repeated MigrationPunishment punishments = 5;
+  google.protobuf.Struct data = 6;
+
+  message MigrationUsername {
+    string username = 1;
+    string date = 2;
+  }
+
+  message MigrationNote {
+    string text = 1;
+    string date = 2;
+    optional string issuer_name = 3;
+  }
+
+  message MigrationIP {
+    string ip_address = 1;
+    optional string country = 2;
+    optional string region = 3;
+    optional string asn = 4;
+    optional bool proxy = 5;
+    optional bool hosting = 6;
+    optional string first_login = 7;
+    repeated string logins = 8;
+  }
+
+  message MigrationPunishment {
+    string id = 1;
+    string type = 2;
+    int32 type_ordinal = 3;
+    optional string reason = 4;
+    string issued = 5;
+    optional string issuer_name = 6;
+    optional int64 duration = 7;
+    optional int64 started = 8;
+    repeated MigrationPunishmentNote notes = 9;
+    repeated google.protobuf.Struct evidence = 10;
+    repeated string attached_ticket_ids = 11;
+    repeated google.protobuf.Struct modifications = 12;
+    google.protobuf.Struct data = 13;
+  }
+
+  message MigrationPunishmentNote {
+    string text = 1;
+    string date = 2;
+    optional string issuer_name = 3;
+  }
+}
+
+message MigrationStatusUpdateRequest {
+  string task_id = 1;
+  string status = 2;
+  optional string message = 3;
+}

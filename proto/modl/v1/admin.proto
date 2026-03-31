@@ -1,0 +1,126 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+message UpdateSystemConfigRequest {
+  optional GeneralConfigRequest general = 1;
+  optional SecurityConfigRequest security = 2;
+  optional NotificationsConfigRequest notifications = 3;
+  optional PerformanceConfigRequest performance = 4;
+  optional FeaturesConfigRequest features = 5;
+  optional LoggingConfigRequest logging = 6;
+}
+
+message GeneralConfigRequest {
+  optional string system_name = 1;
+  optional string admin_email = 2;
+  optional string timezone = 3;
+  optional string default_language = 4;
+  optional bool maintenance_mode = 5;
+  optional string maintenance_message = 6;
+}
+
+message SecurityConfigRequest {
+  optional int32 session_timeout = 1;
+  optional int32 max_login_attempts = 2;
+  optional int32 lockout_duration = 3;
+  optional bool require_two_factor = 4;
+  optional int32 password_min_length = 5;
+  optional bool password_require_special = 6;
+  repeated string ip_whitelist = 7;
+  repeated string cors_origins = 8;
+}
+
+message NotificationsConfigRequest {
+  optional bool email_notifications = 1;
+  optional bool critical_alerts = 2;
+  optional bool weekly_reports = 3;
+  optional bool maintenance_alerts = 4;
+  optional string slack_webhook = 5;
+  optional string discord_webhook = 6;
+}
+
+message PerformanceConfigRequest {
+  optional int32 cache_ttl = 1;
+  optional int32 rate_limit_requests = 2;
+  optional int32 rate_limit_window = 3;
+  optional int32 database_connection_pool = 4;
+  optional bool enable_compression = 5;
+  optional bool enable_caching = 6;
+}
+
+message FeaturesConfigRequest {
+  optional bool analytics_enabled = 1;
+  optional bool audit_logging_enabled = 2;
+  optional bool api_access_enabled = 3;
+  optional bool bulk_operations_enabled = 4;
+  optional bool advanced_filtering = 5;
+  optional bool real_time_updates = 6;
+}
+
+message LoggingConfigRequest {
+  optional bool pm2_logging_enabled = 1;
+  optional int32 log_retention_days = 2;
+  optional int64 max_log_size_per_day = 3;
+}
+
+message CreateSystemLogRequest {
+  string message = 1;
+  string source = 2;
+  string category = 3;
+  string level = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message ResolveLogRequest {
+  string log_id = 1;
+}
+
+message DeleteLogsRequest {
+  repeated string log_ids = 1;
+}
+
+message ToggleMaintenanceRequest {
+  bool enabled = 1;
+  optional string message = 2;
+}
+
+message TogglePm2Request {
+  bool enabled = 1;
+}
+
+message UpdatePromptRequest {
+  string prompt = 1 [(buf.validate.field).string.max_len = 50000];
+}
+
+message UpdateRateLimitsRequest {
+  google.protobuf.Struct limits = 1;
+}
+
+message UpdateAdminServerRequest {
+  google.protobuf.Struct config = 1;
+}
+
+message ExportAnalyticsRequest {
+  string format = 1;
+  optional string date_range = 2;
+}
+
+message GenerateReportRequest {
+  string type = 1;
+  google.protobuf.Struct parameters = 2;
+}
+
+message SystemLogResponse {
+  string id = 1;
+  string message = 2;
+  string source = 3;
+  string category = 4;
+  string level = 5;
+  google.protobuf.Struct metadata = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  optional string user_id = 8;
+}

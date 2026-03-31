@@ -1,0 +1,28 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message PaginationInfo {
+  int32 current = 1;
+  int32 total = 2;
+  int32 limit = 3;
+  int64 total_items = 4;
+  bool has_next = 5;
+  bool has_prev = 6;
+}
+
+message ErrorResponse {
+  int32 status = 1;
+  string error = 2;
+}
+
+message SimpleResponse {
+  bool success = 1;
+}
+
+message PendingStatWipe {
+  string minecraft_uuid = 1;
+  string username = 2;
+  string punishment_id = 3;
+}

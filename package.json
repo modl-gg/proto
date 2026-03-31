@@ -1,0 +1,16 @@
+{
+  "name": "@modl-gg/proto-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "buf generate --include-imports && rm -rf gen/java/com/google && node scripts/generate-barrel.js",
+    "lint": "buf lint",
+    "format": "buf format -w",
+    "clean": "rm -rf gen/java gen/ts && mkdir -p gen/java gen/ts/modl/v1"
+  },
+  "devDependencies": {
+    "@bufbuild/buf": "^1.50.0",
+    "ts-proto": "^2.6.1"
+  }
+}

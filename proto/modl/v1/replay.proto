@@ -1,0 +1,27 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+
+message InitReplayUploadRequest {
+  string mc_version = 1 [(buf.validate.field).string.min_len = 1];
+  int64 file_size = 2 [(buf.validate.field).int64.gt = 0];
+}
+
+message InitReplayUploadResponse {
+  string replay_id = 1;
+  string presigned_url = 2;
+  string key = 3;
+}
+
+message SubmitReplayLabelsRequest {
+  repeated string labels = 1;
+}
+
+message PublicReplayResponse {
+  string id = 1;
+  string status = 2;
+  optional string url = 3;
+  google.protobuf.Timestamp created_at = 4;
+}

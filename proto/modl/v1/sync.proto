@@ -1,0 +1,150 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "buf/validate/validate.proto";
+import "modl/v1/common.proto";
+import "modl/v1/player.proto";
+
+// --- Sync Request ---
+
+message SyncRequest {
+  string last_sync_timestamp = 1;
+  repeated SyncOnlinePlayer online_players = 2;
+  optional string server_name = 3;
+  repeated SyncChatLogEntry chat_logs = 4;
+  repeated SyncCommandLogEntry command_logs = 5;
+}
+
+message SyncOnlinePlayer {
+  string uuid = 1;
+  string username = 2;
+  string ip_address = 3;
+  int64 session_duration_ms = 4;
+}
+
+message SyncChatLogEntry {
+  string uuid = 1;
+  string username = 2;
+  string message = 3;
+  string server = 4;
+  int64 timestamp = 5;
+}
+
+message SyncCommandLogEntry {
+  string uuid = 1;
+  string username = 2;
+  string command = 3;
+  string server = 4;
+  int64 timestamp = 5;
+}
+
+// --- Sync Response ---
+
+message SyncResponse {
+  string timestamp = 1;
+  SyncData data = 2;
+}
+
+message SyncData {
+  repeated SyncPendingPunishment pending_punishments = 1;
+  repeated SyncPendingPunishment recently_started_punishments = 2;
+  repeated SyncModifiedPunishment recently_modified_punishments = 3;
+  repeated SyncPlayerNotification player_notifications = 4;
+  repeated SyncActiveStaffMember active_staff_members = 5;
+  optional SyncMigrationTask migration_task = 6;
+  repeated SyncStaffNotification staff_notifications = 7;
+  repeated PendingStatWipe pending_stat_wipes = 8;
+  repeated SyncStaff2faVerification staff_2fa_verifications = 9;
+  optional int64 staff_permissions_updated_at = 10;
+  optional int64 punishment_types_updated_at = 11;
+}
+
+message SyncPendingPunishment {
+  string minecraft_uuid = 1;
+  string username = 2;
+  SimplePunishment punishment = 3;
+}
+
+message SyncModifiedPunishment {
+  string minecraft_uuid = 1;
+  string username = 2;
+  SyncPunishmentWithModifications punishment = 3;
+}
+
+message SyncPunishmentWithModifications {
+  string id = 1;
+  repeated SyncPunishmentModification modifications = 2;
+}
+
+message SyncPunishmentModification {
+  string type = 1;
+  optional int64 timestamp = 2;
+  optional int64 effective_duration = 3;
+}
+
+message SyncPlayerNotification {
+  string id = 1;
+  string message = 2;
+  string type = 3;
+  optional string target_player_uuid = 4;
+  google.protobuf.Struct data = 5;
+  optional int64 timestamp = 6;
+}
+
+message SyncActiveStaffMember {
+  string minecraft_uuid = 1;
+  string minecraft_username = 2;
+  string staff_username = 3;
+  string staff_role = 4;
+  string email = 5;
+  string staff_id = 6;
+  repeated string permissions = 7;
+  optional bool two_factor_session_valid = 8;
+}
+
+message SyncStaffNotification {
+  string id = 1;
+  string type = 2;
+  string message = 3;
+  google.protobuf.Struct data = 4;
+  optional int64 timestamp = 5;
+}
+
+message SyncMigrationTask {
+  string task_id = 1;
+  string type = 2;
+}
+
+message SyncStaff2faVerification {
+  string minecraft_uuid = 1;
+}
+
+// --- Startup ---
+
+message StartupRequest {
+  string server_name = 1;
+  string plugin_version = 2;
+  optional string platform_type = 3;
+}
+
+message StartupResponse {
+  bool success = 1;
+  optional string message = 2;
+}
+
+// --- Acknowledgments ---
+
+message AcknowledgeNotificationsRequest {
+  repeated string notification_ids = 1;
+}
+
+message AcknowledgeStatWipeRequest {
+  string stat_wipe_id = 1;
+  bool success = 2;
+}
+
+message ReportStaffDisconnectRequest {
+  string minecraft_uuid = 1;
+  int64 session_duration_ms = 2;
+}

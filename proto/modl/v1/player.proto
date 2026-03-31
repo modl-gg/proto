@@ -1,0 +1,260 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+import "modl/v1/common.proto";
+import "modl/v1/punishment.proto";
+
+// --- Shared data types ---
+
+message UsernameEntry {
+  string username = 1;
+  google.protobuf.Timestamp date = 2;
+}
+
+message IPEntry {
+  string ip_address = 1;
+  optional string country = 2;
+  optional string region = 3;
+  optional string asn = 4;
+  optional bool proxy = 5;
+  optional bool hosting = 6;
+  optional string first_login = 7;
+  repeated string logins = 8;
+}
+
+message NoteEntry {
+  string id = 1;
+  string text = 2;
+  optional string issuer_name = 3;
+  optional string issuer_id = 4;
+  google.protobuf.Timestamp date = 5;
+}
+
+// --- Requests ---
+
+message CreatePlayerRequest {
+  string minecraft_uuid = 1 [(buf.validate.field).string = {
+    min_len: 1,
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  }];
+  string username = 2 [(buf.validate.field).string = {
+    min_len: 1,
+    pattern: "^[a-zA-Z0-9_]{1,16}$"
+  }];
+}
+
+message PlayerLoginRequest {
+  string minecraft_uuid = 1 [json_name = "minecraftUUID", (buf.validate.field).string.min_len = 1];
+  string username = 2 [(buf.validate.field).string.min_len = 1];
+  optional string ip_address = 3 [json_name = "ip"];
+  optional string skin_hash = 4;
+  optional string server_name = 5;
+  google.protobuf.Struct ip_info = 6;
+}
+
+message PlayerDisconnectRequest {
+  string minecraft_uuid = 1;
+  int64 session_duration_ms = 2;
+}
+
+message PlayerGetByUuidRequest {
+  string minecraft_uuid = 1;
+}
+
+message PlayerGetByNameRequest {
+  string username = 1;
+}
+
+message PlayerLookupRequest {
+  string query = 1;
+}
+
+message AddPlayerIpRequest {
+  string ip_address = 1 [(buf.validate.field).string.min_len = 1];
+  optional string country = 2;
+  optional string region = 3;
+  optional string asn = 4;
+  optional bool proxy = 5;
+  optional bool hosting = 6;
+  optional string first_login = 7;
+}
+
+message AddPlayerUsernameRequest {
+  string username = 1 [(buf.validate.field).string = {
+    min_len: 1,
+    pattern: "^[a-zA-Z0-9_]{1,16}$"
+  }];
+}
+
+message CreatePlayerNoteRequest {
+  string text = 1 [(buf.validate.field).string = {min_len: 1, max_len: 4000}];
+  optional string issuer_name = 2 [(buf.validate.field).string.max_len = 64];
+  optional string issuer_id = 3 [(buf.validate.field).string.max_len = 64];
+}
+
+message SubmitPlayerIpInfoRequest {
+  string minecraft_uuid = 1;
+  string ip = 2;
+  string country = 3;
+  string region = 4;
+  string asn = 5;
+  bool proxy = 6;
+  bool hosting = 7;
+}
+
+message UpdatePlayerServerRequest {
+  string minecraft_uuid = 1;
+  string server_name = 2;
+}
+
+// --- Chat & Command Logs ---
+
+message ChatLogEntry {
+  string player = 1;
+  string message = 2;
+  string timestamp = 3;
+  optional string server = 4;
+}
+
+message ChatLogBatchRequest {
+  repeated ChatLogEntry entries = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 500}];
+}
+
+message CommandLogEntry {
+  string player = 1;
+  string command = 2;
+  string timestamp = 3;
+  optional string server = 4;
+}
+
+message CommandLogBatchRequest {
+  repeated CommandLogEntry entries = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 500}];
+}
+
+// --- Responses ---
+
+message PlayerLoginResponse {
+  repeated SimplePunishment active_punishments = 1;
+  repeated google.protobuf.Struct pending_notifications = 2;
+  repeated string pending_ip_lookups = 3;
+  repeated PendingStatWipe pending_stat_wipes = 4;
+  int32 status = 5;
+}
+
+message SimplePunishment {
+  string id = 1;
+  string type = 2;
+  optional string category = 3;
+  optional int64 expiration = 4;
+  string description = 5;
+  optional string issuer_name = 6;
+  optional int64 issued_at = 7;
+  optional string player_description = 8;
+  bool started = 9;
+  int32 ordinal = 10;
+}
+
+message PlayerDetailResponse {
+  string id = 1;
+  string minecraft_uuid = 2;
+  repeated UsernameEntry usernames = 3;
+  repeated NoteEntry notes = 4;
+  repeated IPEntry ip_addresses = 5;
+  repeated PunishmentResponse punishments = 6;
+  google.protobuf.Struct data = 7;
+  optional string social = 8;
+  optional string gameplay = 9;
+  int32 social_points = 10;
+  int32 gameplay_points = 11;
+  optional IPEntry latest_ip_data = 12;
+  optional string last_server = 13;
+  double playtime_hours = 14;
+}
+
+message PlayerSearchResult {
+  string uuid = 1;
+  string username = 2;
+  string status = 3;
+  google.protobuf.Timestamp last_online = 4;
+  bool is_online = 5;
+}
+
+message PublicPlayerResponse {
+  string minecraft_uuid = 1;
+  string username = 2;
+}
+
+message LinkedAccountResponse {
+  string mc_uuid = 1;
+  string mc_username = 2;
+  optional string discord_id = 3;
+  optional string discord_username = 4;
+}
+
+message LinkedAccountsResponse {
+  repeated LinkedAccountResponse accounts = 1;
+  PaginationInfo pagination = 2;
+}
+
+message PlayerGetResponse {
+  string id = 1;
+  string minecraft_uuid = 2;
+  repeated UsernameEntry usernames = 3;
+  repeated NoteEntry notes = 4;
+  repeated IPEntry ip_addresses = 5;
+  google.protobuf.Struct data = 6;
+}
+
+message PlayerNameResponse {
+  string minecraft_uuid = 1;
+  string username = 2;
+}
+
+message PlayerLookupResponse {
+  string minecraft_uuid = 1;
+  string username = 2;
+  bool found = 3;
+}
+
+message PlayerProfileResponse {
+  string id = 1;
+  string minecraft_uuid = 2;
+  string username = 3;
+  repeated UsernameEntry usernames = 4;
+  repeated NoteEntry notes = 5;
+  repeated IPEntry ip_addresses = 6;
+  google.protobuf.Struct data = 7;
+}
+
+message PlayerNoteCreateResponse {
+  string id = 1;
+}
+
+message PaginatedPlayerNotesResponse {
+  repeated NoteEntry notes = 1;
+  PaginationInfo pagination = 2;
+}
+
+message ChatLogsResponse {
+  repeated ChatLogEntry entries = 1;
+}
+
+message CommandLogsResponse {
+  repeated CommandLogEntry entries = 1;
+}
+
+message OnlinePlayersResponse {
+  repeated OnlinePlayer players = 1;
+
+  message OnlinePlayer {
+    string uuid = 1;
+    string username = 2;
+    optional string server = 3;
+  }
+}
+
+// Forward declaration reference — PunishmentResponse is defined in punishment.proto.
+// Proto allows cross-file references within the same package.
