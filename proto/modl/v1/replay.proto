@@ -1,27 +1,47 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/timestamp.proto";
-import "buf/validate/validate.proto";
-
 message InitReplayUploadRequest {
-  string mc_version = 1 [(buf.validate.field).string.min_len = 1];
-  int64 file_size = 2 [(buf.validate.field).int64.gt = 0];
+  string mc_version = 1;
+  int64 file_size = 2;
 }
 
 message InitReplayUploadResponse {
   string replay_id = 1;
-  string presigned_url = 2;
-  string key = 3;
+  string upload_url = 2;
+  string method = 3;
+  map<string, string> required_headers = 4;
 }
 
 message SubmitReplayLabelsRequest {
-  repeated string labels = 1;
+  repeated ReplayLabel players = 1;
+
+  message ReplayLabel {
+    string uuid = 1;
+    string player_name = 2;
+    string verdict = 3;
+    int32 confidence = 4;
+    repeated CheatDetail cheats = 5;
+    string notes = 6;
+
+    message CheatDetail {
+      string type = 1;
+      repeated TimeRange time_ranges = 2;
+    }
+
+    message TimeRange {
+      int64 start_ms = 1;
+      int64 end_ms = 2;
+    }
+  }
 }
 
 message PublicReplayResponse {
-  string id = 1;
-  string status = 2;
-  optional string url = 3;
-  google.protobuf.Timestamp created_at = 4;
+  string replay_id = 1;
+  string mc_version = 2;
+  int64 file_size = 3;
+  int64 timestamp = 4;
+  string replay_url = 5;
+  string status = 6;
+  bool labeled = 7;
 }

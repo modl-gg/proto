@@ -1,9 +1,7 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/timestamp.proto";
-
-message AnalyticsOverviewResponse {
+message OverviewResponse {
   int64 total_tickets = 1;
   int64 total_players = 2;
   int64 total_staff = 3;
@@ -12,50 +10,92 @@ message AnalyticsOverviewResponse {
   int32 player_change = 6;
 }
 
-message PlayerActivityResponse {
-  repeated DataPoint data_points = 1;
+message TicketAnalyticsResponse {
+  repeated StatusCount by_status = 1;
+  repeated CategoryCount by_category = 2;
+  repeated CategoryResolutionTime avg_resolution_by_category = 3;
+  repeated DailyTicket daily_tickets = 4;
 
-  message DataPoint {
-    google.protobuf.Timestamp date = 1;
-    int64 count = 2;
+  message StatusCount {
+    string status = 1;
+    int32 count = 2;
+  }
+
+  message CategoryCount {
+    string category = 1;
+    int32 count = 2;
+  }
+
+  message CategoryResolutionTime {
+    string category = 1;
+    double avg_hours = 2;
+  }
+
+  message DailyTicket {
+    string date = 1;
+    int32 count = 2;
   }
 }
 
 message PunishmentAnalyticsResponse {
   repeated TypeCount by_type = 1;
-  repeated DataPoint over_time = 2;
+  repeated SeverityCount by_severity = 2;
+  repeated DailyPunishment daily_punishments = 3;
+  repeated StaffPunishment by_staff = 4;
 
   message TypeCount {
     string type = 1;
-    int64 count = 2;
+    int32 count = 2;
   }
 
-  message DataPoint {
-    google.protobuf.Timestamp date = 1;
-    int64 count = 2;
-  }
-}
-
-message TicketAnalyticsResponse {
-  repeated StatusCount by_status = 1;
-  repeated DataPoint over_time = 2;
-
-  message StatusCount {
-    string status = 1;
-    int64 count = 2;
+  message SeverityCount {
+    string severity = 1;
+    int32 count = 2;
   }
 
-  message DataPoint {
-    google.protobuf.Timestamp date = 1;
-    int64 count = 2;
+  message DailyPunishment {
+    string date = 1;
+    int32 count = 2;
+  }
+
+  message StaffPunishment {
+    string username = 1;
+    int32 count = 2;
   }
 }
 
 message AuditLogsAnalyticsResponse {
-  repeated ActionCount by_action = 1;
+  repeated LevelCount by_level = 1;
+  repeated HourlyCount hourly_trend = 2;
 
-  message ActionCount {
-    string action = 1;
-    int64 count = 2;
+  message LevelCount {
+    string level = 1;
+    int32 count = 2;
+  }
+
+  message HourlyCount {
+    string hour = 1;
+    int32 count = 2;
+  }
+}
+
+message PlayerActivityResponse {
+  repeated DailyCount new_players_trend = 1;
+  repeated CountryCount logins_by_country = 2;
+  SuspiciousActivity suspicious_activity = 3;
+
+  message DailyCount {
+    string date = 1;
+    int32 count = 2;
+  }
+
+  message CountryCount {
+    string country = 1;
+    int32 count = 2;
+  }
+
+  message SuspiciousActivity {
+    int32 proxy_count = 1;
+    int32 hosting_count = 2;
   }
 }

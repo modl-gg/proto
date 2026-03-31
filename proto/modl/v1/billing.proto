@@ -2,7 +2,50 @@ syntax = "proto3";
 package modl.v1;
 
 import "google/protobuf/timestamp.proto";
-import "buf/validate/validate.proto";
+
+message UsageBillingSettingsRequest {
+  bool enabled = 1;
+}
+
+message UpdateOverageLimitsRequest {
+  int32 max_storage_overage_gb = 1 [json_name = "maxStorageOverageGB"];
+  int32 max_ai_overage_requests = 2;
+}
+
+message UpdateStorageLimitRequest {
+  int64 max_storage_limit_bytes = 1;
+}
+
+message PortalSessionResponse {
+  string url = 1;
+}
+
+message CheckoutSessionResponse {
+  string session_id = 1;
+  string url = 2;
+}
+
+message UsageResponse {
+  Period period = 1;
+  UsageMetric cdn = 2;
+  UsageMetric ai = 3;
+  double total_overage_cost = 4;
+  bool usage_billing_enabled = 5;
+
+  message Period {
+    google.protobuf.Timestamp start = 1;
+    google.protobuf.Timestamp end = 2;
+  }
+
+  message UsageMetric {
+    double used = 1;
+    double limit = 2;
+    double overage = 3;
+    double overage_rate = 4;
+    double overage_cost = 5;
+    double percentage = 6;
+  }
+}
 
 message BillingStatusResponse {
   string plan = 1;
@@ -14,59 +57,26 @@ message BillingStatusResponse {
   optional int64 max_ai_overage_requests = 7;
 }
 
-message CheckoutSessionResponse {
-  string url = 1;
-  string session_id = 2;
-}
-
-message PortalSessionResponse {
-  string url = 1;
-}
-
-message CancelResponse {
+message UsageBillingSettingsResponse {
   bool success = 1;
-  optional string message = 2;
+  string message = 2;
+  bool usage_billing_enabled = 3;
 }
 
 message ResubscribeResponse {
   bool success = 1;
-  optional string message = 2;
-}
+  string message = 2;
+  SubscriptionInfo subscription = 3;
 
-message UsageResponse {
-  UsagePeriod period = 1;
-  UsageMetric cdn = 2;
-  UsageMetric ai = 3;
-  double total_overage_cost = 4;
-  bool usage_billing_enabled = 5;
-
-  message UsagePeriod {
-    google.protobuf.Timestamp start = 1;
-    google.protobuf.Timestamp end = 2;
-  }
-
-  message UsageMetric {
-    int64 used = 1;
-    int64 limit = 2;
-    int64 overage = 3;
-    double overage_rate = 4;
-    double overage_cost = 5;
-    double percentage = 6;
+  message SubscriptionInfo {
+    string id = 1;
+    string status = 2;
+    google.protobuf.Timestamp current_period_end = 3;
   }
 }
 
-message UsageBillingSettingsRequest {
-  optional bool enabled_usage_billing = 1;
-}
-
-message UsageBillingSettingsResponse {
-  bool enabled = 1;
-}
-
-message UpdateOverageLimitsRequest {
-  optional int64 max_ai_overage_requests = 1;
-}
-
-message UpdateStorageLimitRequest {
-  optional int64 max_storage_limit_bytes = 1;
+message CancelResponse {
+  bool success = 1;
+  string message = 2;
+  google.protobuf.Timestamp cancels_at = 3;
 }

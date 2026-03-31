@@ -4,7 +4,7 @@ package modl.v1;
 import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 
-// --- Requests ---
+// --- Staff Requests ---
 
 message CreateStaffRequest {
   string email = 1 [(buf.validate.field).string = {min_len: 1, max_len: 254}];
@@ -13,35 +13,37 @@ message CreateStaffRequest {
 }
 
 message UpdateStaffRequest {
-  optional string username = 1 [(buf.validate.field).string.max_len = 64];
+  optional string email = 1 [(buf.validate.field).string.max_len = 254];
   optional string role = 2 [(buf.validate.field).string.max_len = 64];
-  optional string email = 3 [(buf.validate.field).string.max_len = 254];
 }
 
 message UpdateStaffRoleRequest {
-  string role_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string role = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
 }
 
 message InviteStaffRequest {
-  string email = 1 [(buf.validate.field).string = {min_len: 1, max_len: 254}];
-  string role = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  optional string email = 1 [(buf.validate.field).string.max_len = 254];
+  repeated string emails = 2;
+  string role = 3 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
 }
 
 message AcceptInvitationRequest {
-  string invite_code = 1 [(buf.validate.field).string.min_len = 1];
-  string password = 2 [(buf.validate.field).string = {min_len: 8, max_len: 128}];
+  string token = 1 [(buf.validate.field).string.min_len = 1];
 }
 
 message AssignMinecraftPlayerRequest {
-  string minecraft_uuid = 1 [(buf.validate.field).string = {
-    min_len: 1,
-    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-  }];
+  optional string minecraft_uuid = 1 [(buf.validate.field).string.pattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"];
+  optional string minecraft_username = 2;
 }
 
 message GenerateStaff2faTokenRequest {
   string minecraft_uuid = 1;
   string ip = 2;
+}
+
+message StaffDisconnectRequest {
+  string minecraft_uuid = 1;
+  int64 session_duration_ms = 2;
 }
 
 // --- Role Requests ---
@@ -53,25 +55,51 @@ message RoleRequest {
 }
 
 message ReorderRolesRequest {
-  repeated string role_ids = 1;
+  repeated RoleOrderItem role_order = 1;
+
+  message RoleOrderItem {
+    string id = 1;
+    int32 order = 2;
+  }
 }
 
-message UpdateRolePermissionsRequest {
-  string role_id = 1;
-  repeated string permissions = 2;
-}
-
-// --- Responses ---
+// --- Staff Responses ---
 
 message StaffResponse {
   string id = 1;
   string email = 2;
   string username = 3;
-  optional string role = 4;
+  string role = 4;
   string status = 5;
-  optional string assigned_minecraft_uuid = 6;
-  optional string assigned_minecraft_username = 7;
+  string assigned_minecraft_uuid = 6;
+  string assigned_minecraft_username = 7;
   google.protobuf.Timestamp created_at = 8;
+}
+
+message MinecraftStaffSummaryResponse {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string role = 4;
+  string minecraft_uuid = 5;
+  string minecraft_username = 6;
+  repeated string permissions = 7;
+  google.protobuf.Timestamp last_seen = 8;
+  int64 total_playtime_ms = 9;
+  string last_server = 10;
+  int32 punishments_issued_count = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+message MinecraftStaffPermissionsResponse {
+  string minecraft_uuid = 1;
+  string minecraft_username = 2;
+  string staff_username = 3;
+  string staff_id = 4;
+  string staff_role = 5;
+  repeated string permissions = 6;
+  string email = 7;
 }
 
 message AvailablePlayerResponse {
@@ -80,34 +108,30 @@ message AvailablePlayerResponse {
 }
 
 message InviteResultResponse {
-  bool success = 1;
-  string invite_code = 2;
-  string invite_url = 3;
-  google.protobuf.Timestamp expires_at = 4;
-}
+  string message = 1;
+  repeated string success = 2;
+  repeated FailedInvite failed = 3;
 
-message MinecraftStaffPermissionsResponse {
-  repeated MinecraftStaffSummary staff = 1;
-
-  message MinecraftStaffSummary {
-    string uuid = 1;
-    string username = 2;
-    repeated string permissions = 3;
+  message FailedInvite {
+    string email = 1;
+    string reason = 2;
   }
-}
-
-message StaffPermissionsResponse {
-  repeated string permissions = 1;
-}
-
-message StaffListResponse {
-  repeated StaffResponse staff = 1;
 }
 
 message Staff2faTokenResponse {
   string token = 1;
-  int64 expires_at = 2;
+  string verify_url = 2;
 }
+
+message StaffListResponse {
+  repeated MinecraftStaffSummaryResponse staff = 1;
+}
+
+message StaffPermissionsListResponse {
+  repeated MinecraftStaffPermissionsResponse staff = 1;
+}
+
+// --- Role Responses ---
 
 message RoleResponse {
   string id = 1;
@@ -126,14 +150,14 @@ message RoleListResponse {
 }
 
 message PermissionsResponse {
-  repeated PermissionGroup groups = 1;
+  repeated Permission permissions = 1;
+  map<string, string> categories = 2;
 
-  message PermissionGroup {
-    string name = 1;
-    repeated string permissions = 2;
+  message Permission {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string category = 4;
+    optional string parent_id = 5;
   }
-}
-
-message RolesListResponse {
-  repeated RoleResponse roles = 1;
 }

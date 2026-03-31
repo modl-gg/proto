@@ -9,131 +9,156 @@ import "modl/v1/common.proto";
 // --- Shared data types ---
 
 message PunishmentEvidence {
-  string type = 1 [(buf.validate.field).string.min_len = 1];
-  optional string text = 2 [(buf.validate.field).string.max_len = 4000];
-  optional string url = 3 [(buf.validate.field).string.max_len = 2048];
+  string type = 1;
+  optional string text = 2;
+  optional string url = 3;
   optional string uploaded_by = 4;
   optional string uploaded_by_id = 5;
-  optional string file_name = 6;
-  optional string file_type = 7;
-  optional int64 file_size = 8;
-  google.protobuf.Timestamp uploaded_at = 9;
+  google.protobuf.Timestamp uploaded_at = 6;
+  optional string file_name = 7;
+  optional string file_type = 8;
+  optional int64 file_size = 9;
 }
 
 message PunishmentModification {
-  string type = 1;
-  optional string reason = 2;
-  optional string applied_by = 3;
-  google.protobuf.Timestamp applied_at = 4;
-  optional int64 effective_duration = 5;
+  string id = 1;
+  string type = 2;
+  google.protobuf.Timestamp date = 3;
+  optional string issuer_name = 4;
+  optional string issuer_id = 5;
+  string reason = 6;
+  optional int64 effective_duration = 7;
+  optional string appeal_ticket_id = 8;
+  optional google.protobuf.Struct data = 9;
 }
 
 message PunishmentNote {
-  string text = 1;
-  optional string issuer_name = 2;
-  optional string issuer_id = 3;
-  google.protobuf.Timestamp date = 4;
+  string id = 1;
+  string text = 2;
+  google.protobuf.Timestamp date = 3;
+  optional string issuer_name = 4;
+  optional string issuer_id = 5;
 }
 
 // --- Requests ---
 
 message CreatePunishmentRequest {
   string target_uuid = 1 [(buf.validate.field).string.min_len = 1];
-  optional string issuer_name = 2 [(buf.validate.field).string.max_len = 64];
-  optional string issuer_id = 3 [(buf.validate.field).string.max_len = 64];
+  optional string issuer_name = 2;
+  optional string issuer_id = 3;
   int32 type_ordinal = 4 [json_name = "type_ordinal", (buf.validate.field).int32.gte = 0];
-  optional string reason = 5 [(buf.validate.field).string.max_len = 1000];
+  optional string reason = 5;
   optional int64 duration = 6;
-  repeated CreatePunishmentNoteRequest notes = 7 [(buf.validate.field).repeated.max_items = 50];
-  repeated CreatePunishmentEvidenceRequest evidence = 8 [(buf.validate.field).repeated.max_items = 50];
-  repeated string attached_ticket_ids = 9 [(buf.validate.field).repeated.max_items = 50];
-  optional string severity = 10 [(buf.validate.field).string.max_len = 32];
-  optional string status = 11 [(buf.validate.field).string.max_len = 32];
-  google.protobuf.Struct data = 12;
+  optional google.protobuf.Struct data = 7;
+  repeated string notes = 8;
+  repeated string attached_ticket_ids = 9;
+  optional string severity = 10;
+  optional string status = 11;
 }
 
-message CreatePunishmentNoteRequest {
-  string text = 1 [(buf.validate.field).string = {min_len: 1, max_len: 4000}];
-  optional string issuer_name = 2 [(buf.validate.field).string.max_len = 64];
+message PanelCreatePunishmentRequest {
+  optional string issuer_name = 1;
+  optional string issuer_id = 2;
+  int32 type_ordinal = 3 [(buf.validate.field).int32.gte = 0];
+  repeated CreateNoteRequest notes = 4;
+  repeated CreateEvidenceRequest evidence = 5;
+  repeated string attached_ticket_ids = 6;
+  optional string severity = 7;
+  optional string status = 8;
+  optional google.protobuf.Struct data = 9;
+  optional string reason = 10;
+  optional int64 duration = 11;
 }
 
-message CreatePunishmentEvidenceRequest {
-  string type = 1 [(buf.validate.field).string.min_len = 1];
-  optional string text = 2 [(buf.validate.field).string.max_len = 4000];
-  optional string url = 3 [(buf.validate.field).string.max_len = 2048];
-  optional string uploaded_by = 4;
-  optional string file_name = 5;
-  optional string file_type = 6;
-  optional int64 file_size = 7;
+message CreateNoteRequest {
+  string text = 1 [(buf.validate.field).string.min_len = 1];
+  optional string issuer_name = 2;
+  optional string issuer_id = 3;
+  optional string date = 4;
 }
 
-message AddPunishmentEvidenceRequest {
-  string punishment_id = 1;
-  string type = 2 [(buf.validate.field).string.min_len = 1];
-  optional string text = 3 [(buf.validate.field).string.max_len = 4000];
-  optional string url = 4 [(buf.validate.field).string.max_len = 2048];
-  optional string issuer_name = 5;
-  optional string issuer_id = 6;
+message CreateEvidenceRequest {
+  string text = 1 [(buf.validate.field).string.min_len = 1];
+  optional string issuer_name = 2;
+  optional string issuer_id = 3;
+  optional string date = 4;
+  optional string type = 5;
+  optional string file_url = 6;
   optional string file_name = 7;
   optional string file_type = 8;
   optional int64 file_size = 9;
 }
 
-message AddPunishmentNoteRequest {
-  string punishment_id = 1;
-  string text = 2 [(buf.validate.field).string = {min_len: 1, max_len: 4000}];
-  optional string issuer_name = 3;
-  optional string issuer_id = 4;
+message PardonPunishmentRequest {
+  optional string issuer_name = 1;
+  optional string issuer_id = 2;
+  optional string reason = 3;
+  optional string expected_type = 4;
 }
 
-message AddPunishmentModificationRequest {
-  string type = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  optional string reason = 2 [(buf.validate.field).string.max_len = 500];
-  optional string applied_by = 3;
+message PardonPlayerRequest {
+  string player_name = 1;
+  optional string issuer_name = 2;
+  optional string issuer_id = 3;
+  optional string punishment_type = 4;
+  optional string reason = 5;
+}
+
+message AddPunishmentNoteRequest {
+  string punishment_id = 1;
+  string issuer_name = 2;
+  string issuer_id = 3;
+  string note = 4 [(buf.validate.field).string.min_len = 1];
+}
+
+message AddPunishmentEvidenceRequest {
+  string punishment_id = 1;
+  string issuer_name = 2;
+  string issuer_id = 3;
+  string evidence_url = 4 [(buf.validate.field).string.min_len = 1];
 }
 
 message ChangePunishmentDurationRequest {
   string punishment_id = 1;
-  int64 new_duration = 2;
-  optional string reason = 3;
-  optional string changed_by = 4;
+  string issuer_name = 2;
+  string issuer_id = 3;
+  optional int64 new_duration = 4;
 }
 
 message TogglePunishmentOptionRequest {
   string punishment_id = 1;
-  string option_name = 2;
-  bool value = 3;
-  optional string toggled_by = 4;
+  string issuer_name = 2;
+  string issuer_id = 3;
+  string option = 4;
+  bool enabled = 5;
 }
 
-message PardonPunishmentRequest {
+message PunishmentAcknowledgeRequest {
   string punishment_id = 1;
-  optional string pardoner_name = 2;
-  optional string pardoner_id = 3;
-  optional string reason = 4;
+  string player_uuid = 2;
+  string executed_at = 3;
+  optional string error_message = 4;
+  bool success = 5;
 }
 
-message PardonPlayerRequest {
-  string player_uuid = 1;
-  int32 punishment_type_ordinal = 2;
-  optional string pardoner_name = 3;
-  optional string pardoner_id = 4;
-  optional string reason = 5;
-}
-
-message AcknowledgePunishmentRequest {
+message StatWipeAcknowledgeRequest {
   string punishment_id = 1;
+  optional string server_name = 2;
+  bool success = 3;
 }
 
 message CreateEvidenceUploadTokenRequest {
-  string punishment_id = 1;
-  string issuer_name = 2;
+  optional string issuer_name = 1;
+  optional string issuer_id = 2;
 }
 
 message ModifyPunishmentTicketsRequest {
   string punishment_id = 1;
-  repeated string add_ticket_ids = 2;
-  repeated string remove_ticket_ids = 3;
+  string issuer_name = 2;
+  string issuer_id = 3;
+  repeated string add_ticket_ids = 4;
+  repeated string remove_ticket_ids = 5;
+  bool modify_associated_tickets = 6;
 }
 
 // --- Responses ---
@@ -142,15 +167,15 @@ message PunishmentResponse {
   string id = 1;
   string type = 2;
   int32 type_ordinal = 3;
-  optional string issuer_name = 4;
+  string issuer_name = 4;
   google.protobuf.Timestamp issued = 5;
   optional google.protobuf.Timestamp started = 6;
-  optional google.protobuf.Timestamp expires = 7;
-  bool is_appealable = 8;
-  bool active = 9;
-  optional string reason = 10;
-  optional string severity = 11;
-  optional string status = 12;
+  bool is_appealable = 7;
+  optional string reason = 8;
+  optional string severity = 9;
+  optional string status = 10;
+  bool active = 11;
+  optional google.protobuf.Timestamp expires = 12;
   optional string player_uuid = 13;
   optional string player_username = 14;
   optional bool alt_blocking = 15;
@@ -163,59 +188,147 @@ message PunishmentResponse {
 }
 
 message PunishmentCreateResponse {
-  string id = 1;
+  string message = 1;
+  string punishment_id = 2;
+  int32 status = 3;
 }
 
 message PunishmentDetailResponse {
-  PunishmentResponse punishment = 1;
+  PunishmentDetailEntry punishment = 1;
+  int32 status = 2;
+
+  message PunishmentDetailEntry {
+    string id = 1;
+    string player_uuid = 2;
+    string player_name = 3;
+    string issuer_name = 4;
+    string issued = 5;
+    string started = 6;
+    string type = 7;
+    google.protobuf.Struct data = 8;
+    repeated google.protobuf.Struct modifications = 9;
+    repeated google.protobuf.Struct notes = 10;
+    repeated google.protobuf.Struct evidence = 11;
+    int32 type_ordinal = 12;
+  }
 }
 
 message PunishmentPreviewResponse {
-  string type = 1;
-  int32 type_ordinal = 2;
-  optional string severity = 3;
-  optional int64 duration = 4;
-  optional string reason = 5;
-  int32 escalation_level = 6;
+  string message = 1;
+  string social_status = 2;
+  string gameplay_status = 3;
+  string offender_status = 4;
+  string category = 5;
+  SeverityPreview lenient = 6;
+  SeverityPreview regular = 7;
+  SeverityPreview aggravated = 8;
+  SeverityPreview single_severity = 9;
+  bool success = 10;
+  bool single_severity_punishment = 11;
+  bool permanent_until_username_change = 12;
+  bool permanent_until_skin_change = 13;
+  bool can_be_alt_blocking = 14;
+  bool can_be_stat_wiping = 15;
+  int32 status = 16;
+  int32 social_points = 17;
+  int32 gameplay_points = 18;
+
+  message SeverityPreview {
+    string severity = 1;
+    string duration_formatted = 2;
+    string punishment_type = 3;
+    string new_social_status = 4;
+    string new_gameplay_status = 5;
+    bool permanent = 6;
+    int32 points = 7;
+    int32 new_social_points = 8;
+    int32 new_gameplay_points = 9;
+    int64 duration_ms = 10;
+  }
 }
 
 message PunishmentSearchResult {
   string id = 1;
-  string type = 2;
-  string player_uuid = 3;
-  string player_username = 4;
-  optional string reason = 5;
-  google.protobuf.Timestamp issued = 6;
-  bool active = 7;
+  string player_name = 2;
+  int32 type_ordinal = 3;
+  string status = 4;
+  google.protobuf.Timestamp issued = 5;
 }
 
 message PardonResponse {
-  bool success = 1;
-  optional string message = 2;
+  string message = 1;
+  int32 status = 2;
+  int32 pardoned_count = 3;
+  bool success = 4;
 }
 
 message EvidenceUploadTokenResponse {
-  string presigned_url = 1;
-  string key = 2;
+  string token = 1;
+  int32 status = 2;
 }
 
 message PaginatedPunishmentsResponse {
-  repeated PunishmentResponse punishments = 1;
-  PaginationInfo pagination = 2;
+  repeated PunishmentListEntry punishments = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  bool has_more = 4;
+  int32 status = 5;
 }
 
 message RecentPunishmentsResponse {
-  repeated PunishmentResponse punishments = 1;
+  repeated RecentPunishment punishments = 1;
+  int32 status = 2;
+
+  message RecentPunishment {
+    string player_name = 1;
+    string player_uuid = 2;
+    string id = 3;
+    string issuer_name = 4;
+    google.protobuf.Timestamp issued = 5;
+    optional google.protobuf.Timestamp started = 6;
+    string type = 7;
+    optional int32 type_ordinal = 8;
+    repeated PunishmentModification modifications = 9;
+    repeated PunishmentNote notes = 10;
+    repeated PunishmentEvidence evidence = 11;
+    repeated string attached_ticket_ids = 12;
+    google.protobuf.Struct data = 13;
+  }
+}
+
+message PunishmentListEntry {
+  string id = 1;
+  string issuer_name = 2;
+  google.protobuf.Timestamp issued = 3;
+  optional google.protobuf.Timestamp started = 4;
+  string type = 5;
+  optional int32 type_ordinal = 6;
+  repeated PunishmentModification modifications = 7;
+  repeated PunishmentNote notes = 8;
+  repeated PunishmentEvidence evidence = 9;
+  repeated string attached_ticket_ids = 10;
+  google.protobuf.Struct data = 11;
 }
 
 message PunishmentTypesResponse {
-  repeated PunishmentTypeInfo types = 1;
+  repeated PunishmentTypeData data = 1;
+  int32 status = 2;
 
-  message PunishmentTypeInfo {
+  message PunishmentTypeData {
     string name = 1;
-    string description = 2;
-    int32 ordinal = 3;
-    optional string category = 4;
-    int32 points = 5;
+    string category = 2;
+    string staff_description = 3;
+    string player_description = 4;
+    google.protobuf.Struct durations = 5;
+    google.protobuf.Struct points = 6;
+    optional int32 custom_points = 7;
+    optional bool can_be_alt_blocking = 8;
+    optional bool can_be_stat_wiping = 9;
+    optional bool single_severity_punishment = 10;
+    optional bool permanent_until_skin_change = 11;
+    optional bool permanent_until_username_change = 12;
+    int32 id = 13;
+    int32 ordinal = 14;
+    bool is_customizable = 15;
   }
 }

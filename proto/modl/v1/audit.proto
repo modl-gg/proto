@@ -3,21 +3,20 @@ package modl.v1;
 
 import "google/protobuf/timestamp.proto";
 
-message BulkPunishmentActionRequest {
-  repeated string punishment_ids = 1;
-  string action = 2;
-  optional string reason = 3;
+message RollbackRequest {
+  optional string reason = 1;
 }
 
 message DateRangeRollbackRequest {
-  google.protobuf.Timestamp start = 1;
-  google.protobuf.Timestamp end = 2;
-  optional string staff_id = 3;
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+  optional string reason = 3;
 }
 
-message RollbackRequest {
-  string audit_entry_id = 1;
-  optional string reason = 2;
+message BulkPunishmentActionRequest {
+  repeated int32 type_ordinals = 1;
+  string reason = 2;
+  optional int64 new_duration_ms = 3;
 }
 
 message PunishmentAuditResponse {
@@ -27,26 +26,10 @@ message PunishmentAuditResponse {
   string player_name = 4;
   string staff_id = 5;
   string staff_name = 6;
-  optional string reason = 7;
-  optional string duration = 8;
+  string reason = 7;
+  string duration = 8;
   google.protobuf.Timestamp timestamp = 9;
   bool can_rollback = 10;
-}
-
-message ActivePunishmentAuditResponse {
-  string id = 1;
-  string type = 2;
-  string player_uuid = 3;
-  string player_name = 4;
-  bool active = 5;
-}
-
-message StaffDetailsResponse {
-  string id = 1;
-  string username = 2;
-  string role = 3;
-  int32 total_actions = 4;
-  google.protobuf.Timestamp last_active = 5;
 }
 
 message StaffPerformanceResponse {
@@ -58,4 +41,82 @@ message StaffPerformanceResponse {
   int32 punishments_issued = 6;
   int32 avg_response_time = 7;
   google.protobuf.Timestamp last_active = 8;
+}
+
+message StaffDetailsResponse {
+  string username = 1;
+  string period = 2;
+  repeated PunishmentDetail punishments = 3;
+  repeated TicketDetail tickets = 4;
+  repeated DailyActivity daily_activity = 5;
+  repeated PunishmentTypeBreakdown punishment_type_breakdown = 6;
+  int32 evidence_uploads = 7;
+  Summary summary = 8;
+
+  message PunishmentDetail {
+    string id = 1;
+    string player_id = 2;
+    string player_name = 3;
+    string type = 4;
+    string reason = 5;
+    string duration = 6;
+    google.protobuf.Timestamp issued = 7;
+    bool active = 8;
+    bool rolled_back = 9;
+  }
+
+  message TicketDetail {
+    string id = 1;
+    string subject = 2;
+    string category = 3;
+    string status = 4;
+    google.protobuf.Timestamp last_activity = 5;
+    int32 response_time = 6;
+  }
+
+  message DailyActivity {
+    string date = 1;
+    int32 punishments = 2;
+    int32 tickets = 3;
+    int32 evidence = 4;
+  }
+
+  message PunishmentTypeBreakdown {
+    string type = 1;
+    int32 count = 2;
+  }
+
+  message Summary {
+    int32 total_punishments = 1;
+    int32 total_tickets = 2;
+    int32 avg_response_time = 3;
+    int32 evidence_uploads = 4;
+  }
+}
+
+message ActivePunishmentResponse {
+  string id = 1;
+  string player_id = 2;
+  string player_name = 3;
+  string type = 4;
+  int32 type_ordinal = 5;
+  string category = 6;
+  string staff_name = 7;
+  string reason = 8;
+  optional int64 duration = 9;
+  google.protobuf.Timestamp issued = 10;
+  google.protobuf.Timestamp started = 11;
+  google.protobuf.Timestamp expires = 12;
+  bool active = 13;
+  bool has_evidence = 14;
+  int32 evidence_count = 15;
+  repeated EvidenceItem evidence = 16;
+  repeated string attached_ticket_ids = 17;
+
+  message EvidenceItem {
+    string text = 1;
+    string url = 2;
+    string type = 3;
+    string file_name = 4;
+  }
 }

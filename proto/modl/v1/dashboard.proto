@@ -4,42 +4,61 @@ package modl.v1;
 import "google/protobuf/timestamp.proto";
 
 message DashboardMetricsResponse {
-  int64 total_tickets = 1;
-  int64 open_tickets = 2;
-  int64 total_players = 3;
-  int64 total_punishments = 4;
-  int64 active_punishments = 5;
-  int64 total_staff = 6;
-  int32 tickets_trend = 7;
-  int32 players_trend = 8;
+  int64 total_tickets = 1 [json_name = "totalTickets"];
+  int64 open_tickets = 2 [json_name = "openTickets"];
+  int64 total_players = 3 [json_name = "totalPlayers"];
+  int64 total_punishments = 4 [json_name = "totalPunishments"];
+  int64 active_punishments = 5 [json_name = "activePunishments"];
+  int64 total_staff = 6 [json_name = "totalStaff"];
+  int32 tickets_trend = 7 [json_name = "ticketsTrend"];
+  int32 players_trend = 8 [json_name = "playersTrend"];
 }
 
 message ActivityItemResponse {
   string id = 1;
   string type = 2;
-  string description = 3;
-  optional string actor = 4;
-  google.protobuf.Timestamp timestamp = 5;
+  string color = 3;
+  string title = 4;
+  google.protobuf.Timestamp time = 5;
+  string description = 6;
+  repeated ActivityAction actions = 7;
+}
+
+message ActivityAction {
+  string label = 1;
+  string link = 2;
+  bool primary = 3;
 }
 
 message MinecraftDashboardStatsResponse {
-  int32 online_players = 1;
-  int64 total_punishments_today = 2;
-  int64 total_tickets_today = 3;
+  int64 unresolved_reports = 1 [json_name = "unresolvedReports"];
+  int64 unresolved_tickets = 2 [json_name = "unresolvedTickets"];
+  int64 online_staff = 3 [json_name = "onlineStaff"];
+  int64 online_players = 4 [json_name = "onlinePlayers"];
+  int64 active_bans = 5 [json_name = "activeBans"];
+  int64 active_mutes = 6 [json_name = "activeMutes"];
+  int64 total_active_punishments = 7 [json_name = "totalActivePunishments"];
+  int64 total_players = 8 [json_name = "totalPlayers"];
 }
 
-message RecentPunishmentSummary {
+message RecentPunishmentResponse {
   string id = 1;
-  string player_username = 2;
-  string type = 3;
-  optional string reason = 4;
-  google.protobuf.Timestamp issued = 5;
+  string player_name = 2 [json_name = "playerName"];
+  string player_uuid = 3 [json_name = "playerUuid"];
+  string type = 4;
+  string reason = 5;
+  string issuer_name = 6 [json_name = "issuerName"];
+  google.protobuf.Timestamp issued = 7;
+  bool active = 8;
 }
 
-message RecentTicketSummary {
+message RecentTicketResponse {
   string id = 1;
-  optional string subject = 2;
-  string type = 3;
+  string title = 2;
+  string initial_message = 3 [json_name = "initialMessage"];
   string status = 4;
-  google.protobuf.Timestamp date = 5;
+  string priority = 5;
+  google.protobuf.Timestamp created_at = 6 [json_name = "createdAt"];
+  string player_name = 7 [json_name = "playerName"];
+  string type = 8;
 }

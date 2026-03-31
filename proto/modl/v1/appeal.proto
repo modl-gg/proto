@@ -4,36 +4,58 @@ package modl.v1;
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
+import "modl/v1/ticket.proto";
+
+// --- Requests ---
 
 message CreateAppealRequest {
-  string punishment_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
-  string player_uuid = 2 [(buf.validate.field).string = {
+  string punishment_id = 1 [json_name = "punishmentId", (buf.validate.field).string.min_len = 1];
+  string player_uuid = 2 [json_name = "playerUuid", (buf.validate.field).string = {
     min_len: 1,
     pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
   }];
-  string email = 3 [(buf.validate.field).string = {min_len: 1, max_len: 254}];
-  optional string reason = 4 [(buf.validate.field).string.max_len = 4000];
-  optional string evidence = 5 [(buf.validate.field).string.max_len = 4000];
-  google.protobuf.Struct additional_data = 6;
-  repeated google.protobuf.Struct attachments = 7 [(buf.validate.field).repeated.max_items = 20];
-  map<string, string> field_labels = 8;
+  string email = 3 [(buf.validate.field).string.min_len = 1];
+  optional string reason = 4;
+  optional string evidence = 5;
+  optional google.protobuf.Struct additional_data = 6 [json_name = "additionalData"];
+  repeated google.protobuf.Value attachments = 7;
+  map<string, string> field_labels = 8 [json_name = "fieldLabels"];
 }
 
 message AddAppealReplyRequest {
-  string content = 1 [(buf.validate.field).string = {min_len: 1, max_len: 10000}];
-  optional string type = 2;
-  optional bool staff = 3;
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  string content = 2 [(buf.validate.field).string.min_len = 1];
+  string type = 3 [(buf.validate.field).string.min_len = 1];
+  bool staff = 4;
+  optional string action = 5;
+  optional string avatar = 6;
+  repeated google.protobuf.Value attachments = 7;
 }
 
 message UpdateAppealStatusRequest {
-  string status = 1 [(buf.validate.field).string.min_len = 1];
-  optional string reason = 2;
+  string status = 1;
+  optional bool locked = 2;
+  optional string staff_username = 3 [json_name = "staffUsername"];
+  optional string resolution = 4;
 }
+
+// --- Responses ---
 
 message PublicAppealResponse {
   string id = 1;
-  string punishment_id = 2;
-  string status = 3;
-  google.protobuf.Timestamp created_at = 4;
-  optional google.protobuf.Timestamp updated_at = 5;
+  string type = 2;
+  string subject = 3;
+  string status = 4;
+  string appeal_workflow_status = 5 [json_name = "appealWorkflowStatus"];
+  string creator_name = 6 [json_name = "creatorName"];
+  string creator_uuid = 7 [json_name = "creatorUuid"];
+  google.protobuf.Timestamp created = 8;
+  bool locked = 9;
+  repeated TicketReply messages = 10;
+  repeated TicketNote notes = 11;
+  repeated string tags = 12;
+  google.protobuf.Struct data = 13;
 }
+
+// TicketReply, TicketNote, AIAnalysisResult, ChatMessage, TicketResponse
+// are defined in ticket.proto and imported above.

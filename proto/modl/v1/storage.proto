@@ -1,74 +1,95 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 
-message PresignUploadRequest {
-  string upload_type = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
-  string file_name = 2 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
-  int64 file_size = 3 [(buf.validate.field).int64.gt = 0];
-  string content_type = 4 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
-  optional string entity_id = 5 [(buf.validate.field).string.max_len = 64];
-  optional string access_token = 6 [(buf.validate.field).string.max_len = 512];
-}
+// --- Requests ---
 
-message PresignUploadResponse {
-  string presigned_url = 1;
-  string key = 2;
-  string method = 3;
-  google.protobuf.Timestamp expires_at = 4;
-  map<string, string> required_headers = 5;
+message PresignUploadRequest {
+  string upload_type = 1 [json_name = "uploadType", (buf.validate.field).string.min_len = 1];
+  string file_name = 2 [json_name = "fileName", (buf.validate.field).string.min_len = 1];
+  int64 file_size = 3 [json_name = "fileSize", (buf.validate.field).int64.gt = 0];
+  string content_type = 4 [json_name = "contentType", (buf.validate.field).string.min_len = 1];
+  optional string entity_id = 5 [json_name = "entityId"];
+  optional string access_token = 6 [json_name = "accessToken"];
 }
 
 message ConfirmUploadRequest {
   string key = 1 [(buf.validate.field).string.min_len = 1];
-  string etag = 2 [(buf.validate.field).string.min_len = 1];
-  optional string entity_id = 3 [(buf.validate.field).string.max_len = 64];
+  optional string access_token = 2 [json_name = "accessToken"];
+}
+
+message EvidencePresignUploadRequest {
+  string file_name = 1 [json_name = "fileName", (buf.validate.field).string.min_len = 1];
+  string content_type = 2 [json_name = "contentType", (buf.validate.field).string.min_len = 1];
+  int64 file_size = 3 [json_name = "fileSize", (buf.validate.field).int64.gt = 0];
+}
+
+message EvidenceConfirmUploadRequest {
+  string key = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message EvidenceItemRequest {
+  string url = 1 [(buf.validate.field).string.min_len = 1];
+  string file_name = 2 [json_name = "fileName", (buf.validate.field).string.min_len = 1];
+  string file_type = 3 [json_name = "fileType"];
+  int64 file_size = 4 [json_name = "fileSize"];
+}
+
+message SubmitEvidenceRequest {
+  repeated EvidenceItemRequest evidence = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+message BulkDeleteRequest {
+  repeated string keys = 1 [(buf.validate.field).repeated.min_items = 1];
+}
+
+// --- Responses ---
+
+message PresignUploadResponse {
+  string presigned_url = 1 [json_name = "presignedUrl"];
+  string key = 2;
+  google.protobuf.Timestamp expires_at = 3 [json_name = "expiresAt"];
+  string method = 4;
+  map<string, string> required_headers = 5 [json_name = "requiredHeaders"];
 }
 
 message UploadResponse {
   string key = 1;
   string url = 2;
-  google.protobuf.Timestamp uploaded_at = 3;
-  int64 file_size = 4;
-}
-
-message EvidencePresignUploadRequest {
-  string file_name = 1 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
-  string content_type = 2 [(buf.validate.field).string = {min_len: 1, max_len: 128}];
-  int64 file_size = 3 [(buf.validate.field).int64.gt = 0];
-}
-
-message EvidenceItemRequest {
-  string type = 1;
-  optional string text = 2;
-  optional string url = 3;
-  optional int64 file_size = 4;
-}
-
-message SubmitEvidenceRequest {
-  repeated EvidenceItemRequest evidence = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 10}];
-  google.protobuf.Struct metadata = 2;
-}
-
-message BulkDeleteRequest {
-  repeated string keys = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 100}];
+  string file_name = 3 [json_name = "fileName"];
+  int64 size = 4;
+  string content_type = 5 [json_name = "contentType"];
 }
 
 message StorageFileResponse {
   string key = 1;
-  string file_name = 2;
-  string content_type = 3;
-  int64 file_size = 4;
-  google.protobuf.Timestamp uploaded_at = 5;
-  string uploaded_by = 6;
+  string name = 2;
+  int64 size = 3;
+  string content_type = 4 [json_name = "contentType"];
+  google.protobuf.Timestamp last_modified = 5 [json_name = "lastModified"];
+  string url = 6;
 }
 
 message StorageQuotaResponse {
-  int64 total_bytes = 1;
-  int64 used_bytes = 2;
-  int64 available_bytes = 3;
-  double percentage_used = 4;
+  int64 used_bytes = 1 [json_name = "usedBytes"];
+  int64 max_bytes = 2 [json_name = "maxBytes"];
+  double used_percentage = 3 [json_name = "usedPercentage"];
+  string used_formatted = 4 [json_name = "usedFormatted"];
+  string max_formatted = 5 [json_name = "maxFormatted"];
+  map<string, int64> by_type = 6 [json_name = "byType"];
+  AiQuotaInfo ai_quota = 7 [json_name = "aiQuota"];
+  bool is_premium = 8 [json_name = "isPremium"];
+  double storage_overage_rate = 9 [json_name = "storageOverageRate"];
+}
+
+message AiQuotaInfo {
+  int64 total_used = 1 [json_name = "totalUsed"];
+  int64 base_limit = 2 [json_name = "baseLimit"];
+  int64 overage_used = 3 [json_name = "overageUsed"];
+  double overage_cost = 4 [json_name = "overageCost"];
+  bool can_use_ai = 5 [json_name = "canUseAI"];
+  double usage_percentage = 6 [json_name = "usagePercentage"];
+  map<string, int64> by_service = 7 [json_name = "byService"];
 }
