@@ -1,7 +1,6 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 
 // --- Staff Requests ---
@@ -73,7 +72,7 @@ message StaffResponse {
   string status = 5;
   string assigned_minecraft_uuid = 6;
   string assigned_minecraft_username = 7;
-  google.protobuf.Timestamp created_at = 8;
+  int64 created_at = 8;
 }
 
 message MinecraftStaffSummaryResponse {
@@ -84,12 +83,12 @@ message MinecraftStaffSummaryResponse {
   string minecraft_uuid = 5;
   string minecraft_username = 6;
   repeated string permissions = 7;
-  google.protobuf.Timestamp last_seen = 8;
+  int64 last_seen = 8;
   int64 total_playtime_ms = 9;
   string last_server = 10;
   int32 punishments_issued_count = 11;
-  google.protobuf.Timestamp created_at = 12;
-  google.protobuf.Timestamp updated_at = 13;
+  int64 created_at = 12;
+  int64 updated_at = 13;
 }
 
 message MinecraftStaffPermissionsResponse {
@@ -124,11 +123,17 @@ message Staff2faTokenResponse {
 }
 
 message StaffListResponse {
-  repeated MinecraftStaffSummaryResponse staff = 1;
+  int32 status = 1;
+  repeated MinecraftStaffSummaryResponse staff = 2;
 }
 
 message StaffPermissionsListResponse {
-  repeated MinecraftStaffPermissionsResponse staff = 1;
+  int32 status = 1;
+  StaffPermissionsData data = 2;
+
+  message StaffPermissionsData {
+    repeated MinecraftStaffPermissionsResponse staff = 1;
+  }
 }
 
 // --- Role Responses ---
@@ -141,12 +146,13 @@ message RoleResponse {
   bool is_default = 5;
   int32 order = 6;
   int32 user_count = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
+  int64 created_at = 8;
+  int64 updated_at = 9;
 }
 
 message RoleListResponse {
-  repeated RoleResponse roles = 1;
+  int32 status = 1;
+  repeated RoleResponse roles = 2;
 }
 
 message PermissionsResponse {

@@ -2,7 +2,6 @@ syntax = "proto3";
 package modl.v1;
 
 import "google/protobuf/struct.proto";
-import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 
 // --- Shared data types ---
@@ -13,7 +12,7 @@ message TicketReply {
   string avatar = 3;
   string content = 4;
   string type = 5;
-  google.protobuf.Timestamp created = 6;
+  int64 created = 6;
   bool staff = 7;
   string action = 8;
   repeated google.protobuf.Struct attachments = 9;
@@ -24,18 +23,18 @@ message TicketNote {
   string text = 1;
   string issuer_name = 2;
   string issuer_avatar = 3;
-  google.protobuf.Timestamp date = 4;
+  int64 date = 4;
 }
 
 message TicketChatMessage {
   string content = 1;
-  google.protobuf.Timestamp timestamp = 2;
+  int64 timestamp = 2;
 }
 
 message AIAnalysisResult {
   string analysis = 1;
   optional SuggestedAction suggested_action = 2;
-  google.protobuf.Timestamp created_at = 3;
+  int64 created_at = 3;
   string raw_response = 4;
   bool was_applied_automatically = 5;
   bool dismissed = 6;
@@ -184,7 +183,7 @@ message TicketResponse {
   string reported_by = 9;
   string reported_player = 10;
   string reported_player_uuid = 11;
-  google.protobuf.Timestamp date = 12;
+  int64 date = 12;
   bool locked = 13;
   repeated TicketReply messages = 14;
   repeated TicketNote notes = 15;
@@ -205,7 +204,7 @@ message TicketListItemResponse {
   string status = 3;
   string reported_by = 4;
   string reported_by_name = 5;
-  google.protobuf.Timestamp date = 6;
+  int64 date = 6;
   string category = 7;
   bool locked = 8;
   string type = 9;
@@ -248,7 +247,48 @@ message QuickResponseResult {
 }
 
 message TicketsResponse {
-  repeated TicketResponse tickets = 1;
+  int32 status = 1;
+  repeated MinecraftTicketListItem tickets = 2;
+}
+
+message MinecraftTicketListItem {
+  string id = 1;
+  string type = 2;
+  string category = 3;
+  string subject = 4;
+  string status = 5;
+  string player_name = 6 [json_name = "playerName"];
+  string player_uuid = 7 [json_name = "playerUuid"];
+  string priority = 8;
+  optional string first_reply_content = 9 [json_name = "firstReplyContent"];
+  repeated string assigned_to = 10 [json_name = "assignedTo"];
+  int64 created_at = 11 [json_name = "createdAt"];
+  optional int64 updated_at = 12 [json_name = "updatedAt"];
+  bool has_staff_response = 13 [json_name = "hasStaffResponse"];
+  bool locked = 14;
+  int32 reply_count = 15 [json_name = "replyCount"];
+}
+
+message ReportsResponse {
+  int32 status = 1;
+  repeated ReportEntry reports = 2;
+}
+
+message ReportEntry {
+  string id = 1;
+  string type = 2;
+  string category = 3;
+  string reporter_name = 4 [json_name = "reporterName"];
+  string reporter_uuid = 5 [json_name = "reporterUuid"];
+  string reported_player_uuid = 6 [json_name = "reportedPlayerUuid"];
+  string reported_player_name = 7 [json_name = "reportedPlayerName"];
+  string subject = 8;
+  string content = 9;
+  string status = 10;
+  string priority = 11;
+  int64 created_at = 12 [json_name = "createdAt"];
+  repeated string assigned_to = 13 [json_name = "assignedTo"];
+  repeated google.protobuf.Struct chat_messages = 14 [json_name = "chatMessages"];
 }
 
 message CreateTicketResponse {
@@ -280,7 +320,7 @@ message SubscriptionUpdateResponse {
   string ticket_title = 3;
   string reply_content = 4;
   string reply_by = 5;
-  google.protobuf.Timestamp reply_at = 6;
+  int64 reply_at = 6;
   bool is_staff_reply = 7;
   bool is_read = 8;
   optional int32 additional_count = 9;
@@ -289,5 +329,5 @@ message SubscriptionUpdateResponse {
 message TicketSubscriptionResponse {
   string ticket_id = 1;
   string ticket_title = 2;
-  google.protobuf.Timestamp subscribed_at = 3;
+  int64 subscribed_at = 3;
 }

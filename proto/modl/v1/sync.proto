@@ -7,18 +7,28 @@ import "modl/v1/player.proto";
 // --- Sync Request (V2 backend record) ---
 
 message SyncRequest {
-  string last_sync_timestamp = 1;
-  repeated SyncOnlinePlayer online_players = 2;
-  optional string server_name = 3;
-  repeated SyncChatLogEntry chat_logs = 4;
-  repeated SyncCommandLogEntry command_logs = 5;
+  string last_sync_timestamp = 1 [json_name = "lastSyncTimestamp"];
+  repeated SyncOnlinePlayer online_players = 2 [json_name = "onlinePlayers"];
+  optional string server_name = 3 [json_name = "serverName"];
+  repeated SyncChatLogEntry chat_logs = 4 [json_name = "chatLogs"];
+  repeated SyncCommandLogEntry command_logs = 5 [json_name = "commandLogs"];
+  optional SyncServerStatus server_status = 6 [json_name = "serverStatus"];
+}
+
+message SyncServerStatus {
+  int32 online_player_count = 1 [json_name = "onlinePlayerCount"];
+  int32 max_players = 2 [json_name = "maxPlayers"];
+  string server_version = 3 [json_name = "serverVersion"];
+  string timestamp = 4;
+  string platform_type = 5 [json_name = "platformType"];
+  string plugin_version = 6 [json_name = "pluginVersion"];
 }
 
 message SyncOnlinePlayer {
   string uuid = 1;
   string username = 2;
-  string ip_address = 3;
-  int64 session_duration_ms = 4;
+  string ip_address = 3 [json_name = "ipAddress"];
+  int64 session_duration_ms = 4 [json_name = "sessionDurationMs"];
 }
 
 message SyncChatLogEntry {
@@ -131,7 +141,7 @@ message StartupRequest {
   string platform_type = 2;
   string plugin_version = 3;
   int32 max_players = 4;
-  string server_name = 5;
+  optional string server_name = 5;
 }
 
 message StartupResponse {

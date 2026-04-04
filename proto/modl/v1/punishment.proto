@@ -2,7 +2,6 @@ syntax = "proto3";
 package modl.v1;
 
 import "google/protobuf/struct.proto";
-import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 import "modl/v1/common.proto";
 
@@ -14,7 +13,7 @@ message PunishmentEvidence {
   optional string url = 3;
   optional string uploaded_by = 4;
   optional string uploaded_by_id = 5;
-  google.protobuf.Timestamp uploaded_at = 6;
+  int64 uploaded_at = 6;
   optional string file_name = 7;
   optional string file_type = 8;
   optional int64 file_size = 9;
@@ -23,7 +22,7 @@ message PunishmentEvidence {
 message PunishmentModification {
   string id = 1;
   string type = 2;
-  google.protobuf.Timestamp date = 3;
+  int64 date = 3;
   optional string issuer_name = 4;
   optional string issuer_id = 5;
   string reason = 6;
@@ -35,7 +34,7 @@ message PunishmentModification {
 message PunishmentNote {
   string id = 1;
   string text = 2;
-  google.protobuf.Timestamp date = 3;
+  int64 date = 3;
   optional string issuer_name = 4;
   optional string issuer_id = 5;
 }
@@ -168,14 +167,14 @@ message PunishmentResponse {
   string type = 2;
   int32 type_ordinal = 3;
   string issuer_name = 4;
-  google.protobuf.Timestamp issued = 5;
-  optional google.protobuf.Timestamp started = 6;
+  int64 issued = 5;
+  optional int64 started = 6;
   bool is_appealable = 7;
   optional string reason = 8;
   optional string severity = 9;
   optional string status = 10;
   bool active = 11;
-  optional google.protobuf.Timestamp expires = 12;
+  optional int64 expires = 12;
   optional string player_uuid = 13;
   optional string player_username = 14;
   optional bool alt_blocking = 15;
@@ -252,7 +251,7 @@ message PunishmentSearchResult {
   string player_name = 2;
   int32 type_ordinal = 3;
   string status = 4;
-  google.protobuf.Timestamp issued = 5;
+  int64 issued = 5;
 }
 
 message PardonResponse {
@@ -284,8 +283,8 @@ message RecentPunishmentsResponse {
     string player_uuid = 2;
     string id = 3;
     string issuer_name = 4;
-    google.protobuf.Timestamp issued = 5;
-    optional google.protobuf.Timestamp started = 6;
+    int64 issued = 5;
+    optional int64 started = 6;
     string type = 7;
     optional int32 type_ordinal = 8;
     repeated PunishmentModification modifications = 9;
@@ -299,8 +298,8 @@ message RecentPunishmentsResponse {
 message PunishmentListEntry {
   string id = 1;
   string issuer_name = 2;
-  google.protobuf.Timestamp issued = 3;
-  optional google.protobuf.Timestamp started = 4;
+  int64 issued = 3;
+  optional int64 started = 4;
   string type = 5;
   optional int32 type_ordinal = 6;
   repeated PunishmentModification modifications = 7;

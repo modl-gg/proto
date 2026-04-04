@@ -35,4 +35,14 @@ publishing {
             artifactId = "modl-proto"
         }
     }
+    repositories {
+        maven {
+            name = "ModlNexus"
+            url = uri("https://nexus.modl.gg/repository/maven-releases/")
+            credentials {
+                username = System.getenv("NEXUS_USER") ?: findProperty("nexus.user") as String?
+                password = System.getenv("NEXUS_PASS") ?: findProperty("nexus.pass") as String?
+            }
+        }
+    }
 }

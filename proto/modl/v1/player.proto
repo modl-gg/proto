@@ -100,7 +100,7 @@ message PlayerGetByNameRequest {
 
 message PlayerLookupRequest {
   string query = 1;
-  bool query_mojang = 2 [json_name = "queryMojang"];
+  optional bool query_mojang = 2 [json_name = "queryMojang"];
 }
 
 message AddPlayerIpRequest {
@@ -240,8 +240,8 @@ message PlayerLookupResponse {
 message PlayerProfileResponse {
   Account profile = 1;
   int32 status = 2;
-  int32 punishment_count = 3 [json_name = "punishmentCount"];
-  int32 note_count = 4 [json_name = "noteCount"];
+  optional int32 punishment_count = 3 [json_name = "punishmentCount"];
+  optional int32 note_count = 4 [json_name = "noteCount"];
 }
 
 message PlayerNoteCreateResponse {
@@ -280,7 +280,7 @@ message OnlinePlayersResponse {
 message LinkedAccountsResponse {
   repeated Account linked_accounts = 1 [json_name = "linkedAccounts"];
   int32 status = 2;
-  int32 total_count = 3 [json_name = "totalCount"];
+  optional int32 total_count = 3 [json_name = "totalCount"];
   int32 page = 4;
   bool has_more = 5 [json_name = "hasMore"];
 }

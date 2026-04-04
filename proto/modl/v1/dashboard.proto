@@ -1,8 +1,6 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/timestamp.proto";
-
 message DashboardMetricsResponse {
   int64 total_tickets = 1 [json_name = "totalTickets"];
   int64 open_tickets = 2 [json_name = "openTickets"];
@@ -19,7 +17,7 @@ message ActivityItemResponse {
   string type = 2;
   string color = 3;
   string title = 4;
-  google.protobuf.Timestamp time = 5;
+  int64 time = 5;
   string description = 6;
   repeated ActivityAction actions = 7;
 }
@@ -28,6 +26,11 @@ message ActivityAction {
   string label = 1;
   string link = 2;
   bool primary = 3;
+}
+
+message MinecraftDashboardResponse {
+  int32 status = 1;
+  MinecraftDashboardStatsResponse stats = 2;
 }
 
 message MinecraftDashboardStatsResponse {
@@ -48,7 +51,7 @@ message RecentPunishmentResponse {
   string type = 4;
   string reason = 5;
   string issuer_name = 6 [json_name = "issuerName"];
-  google.protobuf.Timestamp issued = 7;
+  int64 issued = 7;
   bool active = 8;
 }
 
@@ -58,7 +61,7 @@ message RecentTicketResponse {
   string initial_message = 3 [json_name = "initialMessage"];
   string status = 4;
   string priority = 5;
-  google.protobuf.Timestamp created_at = 6 [json_name = "createdAt"];
+  int64 created_at = 6 [json_name = "createdAt"];
   string player_name = 7 [json_name = "playerName"];
   string type = 8;
 }
