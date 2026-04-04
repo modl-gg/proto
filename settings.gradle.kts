@@ -1,1 +1,1 @@
-rootProject.name = "modl-proto"
+rootProject.name = "proto"

@@ -32,7 +32,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "modl-proto"
+            artifactId = "proto"
         }
     }
     repositories {
