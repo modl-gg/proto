@@ -1,0 +1,38 @@
+{
+  "name": "@modl-gg/proto",
+  "version": "1.0.0",
+  "description": "Generated protobuf TypeScript types for the modl ecosystem.",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./index.ts"
+    },
+    "./*": {
+      "import": "./*",
+      "types": "./*"
+    }
+  },
+  "files": [
+    "**/*.ts"
+  ],
+  "publishConfig": {
+    "registry": "https://nexus.modl.gg/repository/npm-releases/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/modl-gg/proto.git"
+  },
+  "keywords": [
+    "modl",
+    "proto",
+    "protobuf"
+  ],
+  "author": "modl-gg",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.0.0"
+  }
+}

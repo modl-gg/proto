@@ -37,14 +37,16 @@ jobs:
         run: |
           # Update Gradle version
           sed -i "s/version = \".*\"/version = \"${{ github.event.inputs.version }}\"/" build.gradle.kts
-          # Update npm version
-          cd gen/ts && npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          # Update npm version in template
+          sed -i 's/"version": ".*"/"version": "${{ github.event.inputs.version }}"/' scripts/ts-package.json
 
       - name: Install npm dependencies
         run: npm ci
 
       - name: Generate protobuf code
-        run: npm run generate
+        run: |
+          npm run generate
+          cp scripts/ts-package.json gen/ts/package.json
 
       - name: Build Java with Gradle
         run: ./gradlew build
