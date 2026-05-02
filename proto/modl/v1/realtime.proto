@@ -1,0 +1,253 @@
+syntax = "proto3";
+package modl.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+// Realtime transport messages for websocket-style delivery.
+//
+// Event IDs are only for duplicate suppression and idempotency. They are not
+// replay cursors. Clients recover missed state with HTTP refetch/sync flows.
+message RealtimeEnvelope {
+  // Unique transport event identifier for duplicate suppression only.
+  string event_id = 1;
+  uint32 protocol_version = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  oneof payload {
+    ClientHello client_hello = 10;
+    ServerHello server_hello = 11;
+    Heartbeat heartbeat = 12;
+    Ack ack = 13;
+    Error error = 14;
+    Subscribe subscribe = 15;
+    Unsubscribe unsubscribe = 16;
+    ReconnectAdvice reconnect_advice = 17;
+    TicketChangedEvent ticket_changed = 30;
+    AssignedTicketSubscriptionChangedEvent assigned_ticket_subscription_changed = 31;
+    MigrationStatusChangedEvent migration_status_changed = 32;
+    PermissionInvalidatedEvent permission_invalidated = 50;
+    PunishmentTypeInvalidatedEvent punishment_type_invalidated = 51;
+    StaffNotificationEvent staff_notification = 52;
+    PresenceSnapshotEvent presence_snapshot = 53;
+    PresenceDeltaEvent presence_delta = 54;
+    PresenceInvalidatedEvent presence_invalidated = 55;
+    PunishmentNotificationEvent punishment_notification = 56;
+    PlayerNotificationEvent player_notification = 57;
+    StaffTwoFactorEvent staff_two_factor = 58;
+    MigrationTaskHintEvent migration_task_hint = 59;
+  }
+}
+
+message ClientHello {
+  ClientKind client_kind = 1;
+  uint32 protocol_version = 2;
+  optional string server_id = 3;
+  optional string server_name = 4;
+  optional string tenant_id = 5;
+  repeated Topic supported_topics = 6;
+  // Identifies this plugin process for hybrid presence. Backends use it to
+  // isolate ordering between multiple server instances for the same tenant.
+  optional string server_instance_id = 7;
+}
+
+message ServerHello {
+  uint32 protocol_version = 1;
+  string connection_id = 2;
+  repeated Topic accepted_topics = 3;
+  optional string server_time = 4;
+}
+
+message Heartbeat {
+  uint64 sequence = 1;
+}
+
+message Ack {
+  AckKind kind = 1;
+  string event_id = 2;
+  optional string correlation_id = 3;
+  optional string detail = 4;
+}
+
+message Error {
+  ErrorCode code = 1;
+  string message = 2;
+  optional string correlation_id = 3;
+  optional google.protobuf.Struct details = 4;
+}
+
+message Subscribe {
+  repeated Topic topics = 1;
+}
+
+message Unsubscribe {
+  repeated Topic topics = 1;
+}
+
+message ReconnectAdvice {
+  ReconnectReason reason = 1;
+  ReconnectAction action = 2;
+  optional uint32 retry_after_ms = 3;
+  string message = 4;
+}
+
+message TicketChangedEvent {
+  string ticket_id = 1;
+  optional string change_kind = 2;
+  // Invalidation hint only; clients must refetch ticket state over HTTP.
+  optional string tenant_id = 3;
+}
+
+message AssignedTicketSubscriptionChangedEvent {
+  optional string staff_id = 1;
+  // Invalidation hint only; clients must refetch assigned-ticket state.
+  optional string tenant_id = 2;
+}
+
+message MigrationStatusChangedEvent {
+  string migration_id = 1;
+  optional string status = 2;
+  // Invalidation hint only; clients must refetch migration status.
+  optional string tenant_id = 3;
+}
+
+message PermissionInvalidatedEvent {
+  optional string staff_id = 1;
+  optional string minecraft_uuid = 2;
+  optional string server_name = 3;
+}
+
+message PunishmentTypeInvalidatedEvent {
+  optional string punishment_type_id = 1;
+  optional string server_name = 2;
+}
+
+message StaffNotificationEvent {
+  string notification_id = 1;
+  string type = 2;
+  string message = 3;
+  optional google.protobuf.Struct data = 4;
+  optional int64 timestamp = 5;
+}
+
+// Snapshot payloads are advisory cache state. A snapshot re-baselines one
+// server instance; stale deltas for the same server_instance_id with an older
+// presence_sequence must be ignored. HTTP sync remains authoritative.
+message PresenceSnapshotEvent {
+  repeated PresenceEntry players = 1;
+  optional string server_name = 2;
+  string server_instance_id = 3;
+  uint64 snapshot_revision = 4;
+}
+
+// Delta payloads are best-effort acceleration between snapshots. Consumers must
+// ignore stale deltas for the same server_instance_id and recover missed state
+// from the next snapshot or HTTP sync.
+message PresenceDeltaEvent {
+  repeated PresenceEntry joined = 1;
+  repeated PresenceEntry updated = 2;
+  repeated string left_minecraft_uuids = 3;
+  optional string server_name = 4;
+  string server_instance_id = 5;
+  uint64 presence_sequence = 6;
+}
+
+message PresenceInvalidatedEvent {
+  optional string server_name = 1;
+  repeated string minecraft_uuids = 2;
+  optional string server_instance_id = 3;
+  optional uint64 presence_sequence = 4;
+}
+
+message PresenceEntry {
+  string minecraft_uuid = 1;
+  string username = 2;
+  optional string server_name = 3;
+  optional int64 seen_at = 4;
+}
+
+message PunishmentNotificationEvent {
+  string punishment_id = 1;
+  string minecraft_uuid = 2;
+  optional string username = 3;
+  optional string action = 4;
+  // Non-authoritative hint; plugins must confirm durable state through sync.
+  optional google.protobuf.Struct data = 5;
+}
+
+message PlayerNotificationEvent {
+  string notification_id = 1;
+  string minecraft_uuid = 2;
+  string message = 3;
+  optional string type = 4;
+  optional google.protobuf.Struct data = 5;
+}
+
+message StaffTwoFactorEvent {
+  string minecraft_uuid = 1;
+  optional string staff_id = 2;
+  optional bool session_valid = 3;
+  // Hint only; staff auth state remains authoritative in sync/HTTP state.
+  optional string reason = 4;
+}
+
+message MigrationTaskHintEvent {
+  string task_id = 1;
+  string type = 2;
+  // Hint only; plugins must fetch the authoritative migration task payload.
+  optional string status = 3;
+}
+
+enum ClientKind {
+  CLIENT_KIND_UNSPECIFIED = 0;
+  CLIENT_KIND_PANEL = 1;
+  CLIENT_KIND_BACKEND = 2;
+  CLIENT_KIND_MINECRAFT_PLUGIN = 3;
+}
+
+enum AckKind {
+  ACK_KIND_UNSPECIFIED = 0;
+  ACK_KIND_TRANSPORT = 1;
+  ACK_KIND_DOMAIN = 2;
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  ERROR_CODE_UNSUPPORTED_PROTOCOL = 1;
+  ERROR_CODE_UNAUTHORIZED = 2;
+  ERROR_CODE_FORBIDDEN = 3;
+  ERROR_CODE_INVALID_MESSAGE = 4;
+  ERROR_CODE_RATE_LIMITED = 5;
+  ERROR_CODE_INTERNAL = 6;
+}
+
+enum ReconnectReason {
+  RECONNECT_REASON_UNSPECIFIED = 0;
+  RECONNECT_REASON_SERVER_RESTART = 1;
+  RECONNECT_REASON_DEPLOYMENT = 2;
+  RECONNECT_REASON_BACKPRESSURE = 3;
+  RECONNECT_REASON_AUTH_EXPIRED = 4;
+  RECONNECT_REASON_PROTOCOL_UPGRADE = 5;
+}
+
+enum ReconnectAction {
+  RECONNECT_ACTION_UNSPECIFIED = 0;
+  RECONNECT_ACTION_RECONNECT = 1;
+  RECONNECT_ACTION_REAUTHENTICATE = 2;
+  RECONNECT_ACTION_RESYNC = 3;
+  RECONNECT_ACTION_STOP = 4;
+}
+
+enum Topic {
+  TOPIC_UNSPECIFIED = 0;
+  TOPIC_PANEL_TICKETS = 1;
+  TOPIC_PANEL_ASSIGNED_TICKETS = 2;
+  TOPIC_PANEL_MIGRATIONS = 3;
+  TOPIC_MINECRAFT_PERMISSIONS = 10;
+  TOPIC_MINECRAFT_PUNISHMENT_TYPES = 11;
+  TOPIC_MINECRAFT_STAFF_NOTIFICATIONS = 12;
+  TOPIC_MINECRAFT_PRESENCE = 13;
+  TOPIC_MINECRAFT_PUNISHMENTS = 14;
+  TOPIC_MINECRAFT_PLAYER_NOTIFICATIONS = 15;
+  TOPIC_MINECRAFT_STAFF_2FA = 16;
+  TOPIC_MINECRAFT_MIGRATION_TASKS = 17;
+}

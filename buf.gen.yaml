@@ -11,12 +11,7 @@ managed:
 plugins:
   - remote: buf.build/protocolbuffers/java
     out: gen/java
-  - local: protoc-gen-ts_proto
+  - remote: buf.build/bufbuild/es
     out: gen/ts
     opt:
-      - onlyTypes=true
-      - stringEnums=true
-      - useOptionals=messages
-      - snakeToCamel=true
-      - exportCommonSymbols=false
-      - unrecognizedEnum=false
+      - target=ts

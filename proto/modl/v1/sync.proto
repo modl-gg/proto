@@ -13,6 +13,7 @@ message SyncRequest {
   repeated SyncChatLogEntry chat_logs = 4 [json_name = "chatLogs"];
   repeated SyncCommandLogEntry command_logs = 5 [json_name = "commandLogs"];
   optional SyncServerStatus server_status = 6 [json_name = "serverStatus"];
+  optional string server_instance_id = 7 [json_name = "serverInstanceId"];
 }
 
 message SyncServerStatus {
@@ -147,6 +148,7 @@ message StartupRequest {
 message StartupResponse {
   string panel_url = 1;
   string timestamp = 2;
+  string server_instance_id = 3 [json_name = "serverInstanceId"];
 }
 
 // --- Acknowledgments ---

@@ -83,11 +83,13 @@ message PlayerLoginRequest {
   optional string skin_hash = 4 [json_name = "skinHash"];
   optional string server_name = 5 [json_name = "serverName"];
   optional google.protobuf.Struct ip_info = 6 [json_name = "ipInfo"];
+  optional string server_instance_id = 7 [json_name = "serverInstanceId"];
 }
 
 message PlayerDisconnectRequest {
   string minecraft_uuid = 1 [json_name = "minecraftUuid"];
   int64 session_duration_ms = 2 [json_name = "sessionDurationMs"];
+  optional string server_instance_id = 3 [json_name = "serverInstanceId"];
 }
 
 message PlayerGetByUuidRequest {
@@ -134,6 +136,7 @@ message SubmitPlayerIpInfoRequest {
 message UpdatePlayerServerRequest {
   string minecraft_uuid = 1 [json_name = "minecraftUuid"];
   string server_name = 2 [json_name = "serverName"];
+  optional string server_instance_id = 3 [json_name = "serverInstanceId"];
 }
 
 // --- Chat & Command Logs ---

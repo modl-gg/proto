@@ -1,6 +1,6 @@
 {
   "name": "@modl-gg/proto",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Generated protobuf TypeScript types for the modl ecosystem.",
   "type": "module",
   "main": "./index.ts",
@@ -10,9 +10,13 @@
       "import": "./index.ts",
       "types": "./index.ts"
     },
+    "./*.ts": {
+      "import": "./*.ts",
+      "types": "./*.ts"
+    },
     "./*": {
-      "import": "./*",
-      "types": "./*"
+      "import": "./*.ts",
+      "types": "./*.ts"
     }
   },
   "files": [
