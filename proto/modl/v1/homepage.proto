@@ -1,31 +1,36 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
 message CreateCardRequest {
-  string title = 1;
-  optional string description = 2;
-  optional string icon = 3;
-  optional string icon_color = 4;
-  optional string action_type = 5;
-  optional string action_url = 6;
-  optional string action_button_text = 7;
-  optional string category_id = 8;
-  optional string background_color = 9;
+  string title = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+    pattern: "(?s).*\\S.*"
+  }];
+  optional string description = 2 [(buf.validate.field).string.max_len = 500];
+  optional string icon = 3 [(buf.validate.field).string.max_len = 128];
+  optional string icon_color = 4 [(buf.validate.field).string.max_len = 32];
+  optional string action_type = 5 [(buf.validate.field).string.max_len = 64];
+  optional string action_url = 6 [(buf.validate.field).string.max_len = 2048];
+  optional string action_button_text = 7 [(buf.validate.field).string.max_len = 64];
+  optional string category_id = 8 [(buf.validate.field).string.max_len = 64];
+  optional string background_color = 9 [(buf.validate.field).string.max_len = 32];
   optional bool is_enabled = 10;
 }
 
 message UpdateCardRequest {
-  optional string title = 1;
-  optional string description = 2;
-  optional string icon = 3;
-  optional string icon_color = 4;
-  optional string action_type = 5;
-  optional string action_url = 6;
-  optional string action_button_text = 7;
-  optional string category_id = 8;
-  optional string background_color = 9;
+  optional string title = 1 [(buf.validate.field).string = {max_len: 128}];
+  optional string description = 2 [(buf.validate.field).string.max_len = 500];
+  optional string icon = 3 [(buf.validate.field).string.max_len = 128];
+  optional string icon_color = 4 [(buf.validate.field).string.max_len = 32];
+  optional string action_type = 5 [(buf.validate.field).string.max_len = 64];
+  optional string action_url = 6 [(buf.validate.field).string.max_len = 2048];
+  optional string action_button_text = 7 [(buf.validate.field).string.max_len = 64];
+  optional string category_id = 8 [(buf.validate.field).string.max_len = 64];
+  optional string background_color = 9 [(buf.validate.field).string.max_len = 32];
   optional bool is_enabled = 10;
 }
 
@@ -60,4 +65,57 @@ message HomepageCardResponse {
     string slug = 3;
     int32 ordinal = 4;
   }
+}
+
+message HomepageCardEntityResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string icon = 4;
+  string icon_color = 5;
+  string action_type = 6;
+  string action_url = 7;
+  string action_button_text = 8;
+  string category_id = 9;
+  string background_color = 10;
+  int32 ordinal = 11;
+  bool is_enabled = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+message PanelHomepageCardResponse {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string icon = 4;
+  string icon_color = 5;
+  string action_type = 6;
+  string action_url = 7;
+  string action_button_text = 8;
+  string category_id = 9;
+  string background_color = 10;
+  bool is_enabled = 11;
+  int32 ordinal = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  optional EmbeddedCategory category = 15;
+
+  message EmbeddedCategory {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+  }
+}
+
+message PanelHomepageCardsResponse {
+  repeated PanelHomepageCardResponse cards = 1;
+}
+
+message PublicHomepageCardsResponse {
+  repeated HomepageCardResponse cards = 1;
+}
+
+message HomepageCardMutationResponse {
+  string message = 1;
 }

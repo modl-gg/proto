@@ -1,6 +1,7 @@
 syntax = "proto3";
 package modl.v1;
 
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 message RollbackRequest {
@@ -119,4 +120,34 @@ message ActivePunishmentResponse {
     string type = 3;
     string file_name = 4;
   }
+}
+
+message StaffPerformanceListResponse {
+  repeated StaffPerformanceResponse staff = 1;
+}
+
+message ActivePunishmentsAuditResponse {
+  repeated ActivePunishmentResponse punishments = 1;
+}
+
+message PunishmentAuditListResponse {
+  repeated PunishmentAuditResponse punishments = 1;
+}
+
+message AuditRollbackResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AuditBulkOperationResponse {
+  bool success = 1;
+  int32 count = 2;
+  string message = 3;
+}
+
+message AuditDatabaseTableResponse {
+  repeated google.protobuf.Struct data = 1;
+  int64 total = 2;
+  int32 limit = 3;
+  int32 skip = 4;
 }

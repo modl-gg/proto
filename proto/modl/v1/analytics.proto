@@ -1,6 +1,9 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
+import "modl/v1/server.proto";
+
 message OverviewResponse {
   int64 total_tickets = 1;
   int64 total_players = 2;
@@ -98,4 +101,162 @@ message PlayerActivityResponse {
     int32 proxy_count = 1;
     int32 hosting_count = 2;
   }
+}
+
+message AdminAnalyticsRangeRequest {
+  optional string range = 1 [(buf.validate.field).string.max_len = 32];
+}
+
+message AdminAnalyticsHistoricalRequest {
+  option (buf.validate.message).cel = {
+    id: "admin_analytics_historical.metric"
+    message: "metric must be one of servers, users, or tickets"
+    expression: "!has(this.metric) || this.metric in ['servers', 'users', 'tickets']"
+  };
+
+  optional string metric = 1 [(buf.validate.field).string.max_len = 64];
+  optional string range = 2 [(buf.validate.field).string.max_len = 32];
+}
+
+message AdminAnalyticsDashboardResponse {
+  bool success = 1;
+  AdminAnalyticsDashboardData data = 2;
+}
+
+message AdminAnalyticsDashboardData {
+  AdminAnalyticsOverview overview = 1;
+  AdminAnalyticsServerMetrics server_metrics = 2;
+  AdminAnalyticsUsageStatistics usage_statistics = 3;
+  AdminAnalyticsSystemHealth system_health = 4;
+}
+
+message AdminAnalyticsOverview {
+  int64 total_servers = 1;
+  int64 active_servers = 2;
+  int64 total_users = 3;
+  int64 total_tickets = 4;
+  string server_growth_rate = 5;
+  string user_growth_rate = 6;
+  string avg_players_per_server = 7;
+  string avg_tickets_per_server = 8;
+}
+
+message AdminAnalyticsServerMetrics {
+  repeated AdminAnalyticsNameValue by_plan = 1;
+  repeated AdminAnalyticsNameValue by_status = 2;
+  repeated AdminAnalyticsDateServers registration_trend = 3;
+}
+
+message AdminAnalyticsNameValue {
+  string name = 1;
+  int32 value = 2;
+}
+
+message AdminAnalyticsDateServers {
+  string date = 1;
+  int32 servers = 2;
+}
+
+message AdminAnalyticsUsageStatistics {
+  repeated AdminServerRecord top_servers_by_users = 1;
+  repeated AdminAnalyticsServerActivity server_activity = 2;
+  repeated AdminAnalyticsLiveServer live_servers = 3;
+  int32 total_player_count = 4;
+  repeated AdminAnalyticsPlayerActivity player_activity = 5;
+}
+
+message AdminAnalyticsServerActivity {
+  string date = 1;
+  int64 active_servers = 2;
+}
+
+message AdminAnalyticsLiveServer {
+  string server_id = 1;
+  string server_name = 2;
+  int32 player_count = 3;
+  optional string platform = 4;
+  optional string version = 5;
+  optional string plugin_version = 6;
+}
+
+message AdminAnalyticsPlayerActivity {
+  string date = 1;
+  int32 players = 2;
+}
+
+message AdminAnalyticsSystemHealth {
+  repeated AdminAnalyticsErrorRate error_rates = 1;
+}
+
+message AdminAnalyticsErrorRate {
+  optional string date = 1;
+  optional double rate = 2;
+  optional string message = 3;
+}
+
+message AdminAnalyticsActivityResponse {
+  bool success = 1;
+  repeated AdminAnalyticsActivityPoint data = 2;
+  int64 total_players = 3;
+  int64 total_servers = 4;
+}
+
+message AdminAnalyticsActivityPoint {
+  string date = 1;
+  int64 active_servers = 2;
+  int32 online_players = 3;
+}
+
+message AdminAnalyticsUsageResponse {
+  bool success = 1;
+  AdminAnalyticsUsageData data = 2;
+}
+
+message AdminAnalyticsUsageData {
+  AdminAnalyticsUserEngagement user_engagement = 1;
+  AdminAnalyticsResourceUtilization resource_utilization = 2;
+}
+
+message AdminAnalyticsUserEngagement {
+  int64 monthly_active_servers = 1;
+}
+
+message AdminAnalyticsResourceUtilization {
+  int64 storage = 1;
+  double storage_percent = 2;
+  int64 api_calls = 3;
+  int64 database_queries = 4;
+}
+
+message AdminAnalyticsHistoricalResponse {
+  bool success = 1;
+  AdminAnalyticsHistoricalData data = 2;
+}
+
+message AdminAnalyticsHistoricalData {
+  string metric = 1;
+  string range = 2;
+  repeated AdminAnalyticsDateValue data = 3;
+}
+
+message AdminAnalyticsDateValue {
+  string date = 1;
+  int64 value = 2;
+}
+
+message AdminAnalyticsExportResponse {
+  string export_date = 1;
+  string range = 2;
+  AdminAnalyticsExportData data = 3;
+}
+
+message AdminAnalyticsExportData {
+  int64 servers = 1;
+  int64 users = 2;
+  int64 tickets = 3;
+}
+
+message AdminAnalyticsReportResponse {
+  bool success = 1;
+  optional string error = 2;
 }

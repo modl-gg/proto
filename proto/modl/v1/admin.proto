@@ -1,66 +1,110 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
 message ResolveLogRequest {
-  optional string resolved_by = 1;
+  optional string resolved_by = 1 [(buf.validate.field).string.max_len = 128];
 }
 
 message UpdateRateLimitsRequest {
-  optional int32 rate_limit_requests = 1;
-  optional int32 rate_limit_window = 2;
+  optional int32 rate_limit_requests = 1 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 1000000
+  }];
+  optional int32 rate_limit_window = 2 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 86400
+  }];
 }
 
 message GenerateReportRequest {
-  optional string type = 1;
-  optional string range = 2;
-  optional string format = 3;
+  optional string type = 1 [(buf.validate.field).string.max_len = 64];
+  optional string range = 2 [(buf.validate.field).string.max_len = 32];
+  optional string format = 3 [(buf.validate.field).string.max_len = 16];
 }
 
 message ExportAnalyticsRequest {
-  optional string type = 1;
-  optional string range = 2;
+  optional string type = 1 [(buf.validate.field).string.max_len = 64];
+  optional string range = 2 [(buf.validate.field).string.max_len = 32];
 }
 
 message UpdatePromptRequest {
-  string prompt = 1;
+  string prompt = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50000
+  }];
 }
 
 message CreateSystemLogRequest {
-  string level = 1;
-  string message = 2;
-  string source = 3;
-  string category = 4;
-  string server_id = 5;
+  string level = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 16
+    pattern: "^(critical|error|warning|info|debug)$"
+  }];
+  string message = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 4000
+  }];
+  string source = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+  string category = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+  string server_id = 5 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
   google.protobuf.Struct metadata = 6;
 }
 
 message DeleteLogsRequest {
-  repeated string log_ids = 1;
+  repeated string log_ids = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 200
+  }];
 }
 
 message ToggleMaintenanceRequest {
+  // Legacy implicit-presence field; v3 callers should use enabled_value.
   bool enabled = 1;
-  optional string message = 2;
+  optional string message = 2 [(buf.validate.field).string.max_len = 500];
+  // Explicit-presence value for v3 callers; transport/controller code should prefer this when present.
+  optional bool enabled_value = 3;
 }
 
 message UpdateServerRequest {
-  optional string admin_email = 1;
+  optional string admin_email = 1 [(buf.validate.field).string = {
+    email: true
+    max_len: 254
+  }];
   optional bool email_verified = 2;
-  optional string provisioning_status = 3;
-  optional string provisioning_notes = 4;
-  optional string plan = 5;
-  optional string subscription_status = 6;
-  optional string last_activity_at = 7;
+  optional string provisioning_status = 3 [(buf.validate.field).string.max_len = 32];
+  optional string provisioning_notes = 4 [(buf.validate.field).string.max_len = 1000];
+  optional string plan = 5 [(buf.validate.field).string.max_len = 32];
+  optional string subscription_status = 6 [(buf.validate.field).string.max_len = 32];
+  optional string last_activity_at = 7 [(buf.validate.field).string.max_len = 64];
 }
 
 message TogglePm2Request {
+  // Legacy implicit-presence field; v3 callers should use enabled_value.
   bool enabled = 1;
+  // Explicit-presence value for v3 callers; transport/controller code should prefer this when present.
+  optional bool enabled_value = 2;
 }
 
 message UpdateSystemConfigRequest {
+  option (buf.validate.message).cel = {
+    id: "update_system_config.sections"
+    message: "at least one config section must be provided"
+    expression: "has(this.general) || has(this.logging) || has(this.security) || has(this.notifications) || has(this.performance) || has(this.features)"
+  };
+
   optional GeneralConfigRequest general = 1;
   optional LoggingConfigRequest logging = 2;
   optional SecurityConfigRequest security = 3;
@@ -69,29 +113,53 @@ message UpdateSystemConfigRequest {
   optional FeaturesConfigRequest features = 6;
 
   message GeneralConfigRequest {
-    string system_name = 1;
-    optional string admin_email = 2;
-    optional string timezone = 3;
-    optional string default_language = 4;
+    string system_name = 1 [(buf.validate.field).string = {
+      min_len: 1
+      max_len: 100
+    }];
+    optional string admin_email = 2 [(buf.validate.field).string = {
+      email: true
+      max_len: 254
+    }];
+    optional string timezone = 3 [(buf.validate.field).string.max_len = 64];
+    optional string default_language = 4 [(buf.validate.field).string.max_len = 16];
     optional bool maintenance_mode = 5;
-    optional string maintenance_message = 6;
+    optional string maintenance_message = 6 [(buf.validate.field).string.max_len = 500];
   }
 
   message LoggingConfigRequest {
     optional bool pm2_logging_enabled = 1;
-    optional int32 log_retention_days = 2;
-    optional int32 max_log_size_per_day = 3;
+    optional int32 log_retention_days = 2 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 3650
+    }];
+    optional int32 max_log_size_per_day = 3 [(buf.validate.field).int32 = {
+      gte: 1024
+      lte: 100000000
+    }];
   }
 
   message SecurityConfigRequest {
-    optional int32 session_timeout = 1;
-    optional int32 max_login_attempts = 2;
-    optional int32 lockout_duration = 3;
+    optional int32 session_timeout = 1 [(buf.validate.field).int32 = {
+      gte: 5
+      lte: 1440
+    }];
+    optional int32 max_login_attempts = 2 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 20
+    }];
+    optional int32 lockout_duration = 3 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 1440
+    }];
     optional bool require_two_factor = 4;
-    optional int32 password_min_length = 5;
+    optional int32 password_min_length = 5 [(buf.validate.field).int32 = {
+      gte: 8
+      lte: 128
+    }];
     optional bool password_require_special = 6;
-    repeated string ip_whitelist = 7;
-    repeated string cors_origins = 8;
+    repeated string ip_whitelist = 7 [(buf.validate.field).repeated.max_items = 256];
+    repeated string cors_origins = 8 [(buf.validate.field).repeated.max_items = 50];
   }
 
   message NotificationsConfigRequest {
@@ -99,15 +167,27 @@ message UpdateSystemConfigRequest {
     optional bool critical_alerts = 2;
     optional bool weekly_reports = 3;
     optional bool maintenance_alerts = 4;
-    optional string slack_webhook = 5;
-    optional string discord_webhook = 6;
+    optional string slack_webhook = 5 [(buf.validate.field).string.max_len = 2048];
+    optional string discord_webhook = 6 [(buf.validate.field).string.max_len = 2048];
   }
 
   message PerformanceConfigRequest {
-    optional int32 cache_ttl = 1;
-    optional int32 rate_limit_requests = 2;
-    optional int32 rate_limit_window = 3;
-    optional int32 database_connection_pool = 4;
+    optional int32 cache_ttl = 1 [(buf.validate.field).int32 = {
+      gte: 0
+      lte: 86400
+    }];
+    optional int32 rate_limit_requests = 2 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 1000000
+    }];
+    optional int32 rate_limit_window = 3 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 86400
+    }];
+    optional int32 database_connection_pool = 4 [(buf.validate.field).int32 = {
+      gte: 1
+      lte: 200
+    }];
     optional bool enable_compression = 5;
     optional bool enable_caching = 6;
   }
@@ -128,4 +208,375 @@ message SystemLogResponse {
   string level = 3;
   string source = 4;
   google.protobuf.Timestamp timestamp = 5;
+  optional string category = 6;
+  optional string server_id = 7;
+  google.protobuf.Struct metadata = 8;
+  bool resolved = 9;
+  optional string resolved_by = 10;
+  optional google.protobuf.Timestamp resolved_at = 11;
+}
+
+message PanelLogResponse {
+  string id = 1;
+  string description = 2;
+  string level = 3;
+  string source = 4;
+  google.protobuf.Timestamp created = 5;
+}
+
+message PanelLogsResponse {
+  repeated PanelLogResponse logs = 1;
+}
+
+message AdminMonitoringDashboardResponse {
+  bool success = 1;
+  AdminMonitoringDashboardData data = 2;
+}
+
+message AdminMonitoringDashboardData {
+  AdminMonitoringServerMetrics servers = 1;
+  AdminMonitoringLogMetrics logs = 2;
+  AdminMonitoringSystemHealthSummary system_health = 3;
+  repeated google.protobuf.Struct trends = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}
+
+message AdminMonitoringServerMetrics {
+  int64 total = 1;
+  int64 active = 2;
+  int64 pending = 3;
+  int64 failed = 4;
+  int64 recent_registrations = 5;
+  int64 concurrent_servers = 6;
+  int64 concurrent_players = 7;
+}
+
+message AdminMonitoringLogMetrics {
+  AdminMonitoringLogWindow last24h = 1;
+  AdminMonitoringUnresolvedLogs unresolved = 2;
+}
+
+message AdminMonitoringLogWindow {
+  int64 total = 1;
+  int64 critical = 2;
+  int64 error = 3;
+  int64 warning = 4;
+}
+
+message AdminMonitoringUnresolvedLogs {
+  int64 critical = 1;
+  int64 error = 2;
+}
+
+message AdminMonitoringSystemHealthSummary {
+  double score = 1;
+  string status = 2;
+}
+
+message AdminMonitoringLogsRequest {
+  optional int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  optional int32 limit = 2 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 100
+  }];
+  optional string level = 3 [(buf.validate.field).string.max_len = 16];
+  optional string source = 4 [(buf.validate.field).string.max_len = 64];
+  optional string server_id = 5 [(buf.validate.field).string.max_len = 64];
+  optional string category = 6 [(buf.validate.field).string.max_len = 64];
+  optional string resolved = 7 [(buf.validate.field).string.max_len = 16];
+  optional string search = 8 [(buf.validate.field).string.max_len = 4000];
+  optional string start_date = 9 [(buf.validate.field).string.max_len = 64];
+  optional string end_date = 10 [(buf.validate.field).string.max_len = 64];
+  optional string sort = 11 [(buf.validate.field).string.max_len = 64];
+  optional string order = 12 [(buf.validate.field).string.max_len = 16];
+}
+
+message AdminMonitoringLogsResponse {
+  bool success = 1;
+  AdminMonitoringLogsData data = 2;
+}
+
+message AdminMonitoringLogsData {
+  repeated SystemLogResponse logs = 1;
+  AdminMonitoringPagination pagination = 2;
+  AdminMonitoringLogFilters filters = 3;
+}
+
+message AdminMonitoringPagination {
+  int32 page = 1;
+  int32 limit = 2;
+  int64 total = 3;
+  int32 pages = 4;
+}
+
+message AdminMonitoringLogFilters {
+  optional string level = 1;
+  optional string source = 2;
+  optional string server_id = 3;
+  optional string category = 4;
+  optional string resolved = 5;
+  optional string search = 6;
+}
+
+message AdminMonitoringSystemLogMutationResponse {
+  bool success = 1;
+  SystemLogResponse data = 2;
+  optional string message = 3;
+}
+
+message AdminMonitoringSourcesResponse {
+  bool success = 1;
+  AdminMonitoringSourcesData data = 2;
+}
+
+message AdminMonitoringSourcesData {
+  repeated string sources = 1;
+  repeated string categories = 2;
+}
+
+message AdminMonitoringHealthResponse {
+  bool success = 1;
+  AdminMonitoringHealthData data = 2;
+}
+
+message AdminMonitoringHealthData {
+  string status = 1;
+  repeated AdminMonitoringHealthCheck checks = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message AdminMonitoringHealthCheck {
+  string name = 1;
+  string status = 2;
+  optional string message = 3;
+  optional int64 response_time = 4;
+  optional string error = 5;
+  optional int64 count = 6;
+}
+
+message AdminMonitoringDeleteLogsResponse {
+  bool success = 1;
+  AdminMonitoringDeletedCount data = 2;
+  optional string message = 3;
+}
+
+message AdminMonitoringDeletedCount {
+  int64 deleted_count = 1;
+}
+
+message AdminMonitoringPm2StatusResponse {
+  bool success = 1;
+  AdminMonitoringPm2Status data = 2;
+}
+
+message AdminMonitoringPm2Status {
+  bool is_enabled = 1;
+  bool is_streaming = 2;
+  int32 reconnect_attempts = 3;
+  int32 recent_logs_count = 4;
+  optional google.protobuf.Timestamp last_log_time = 5;
+}
+
+message AdminMonitoringPm2RestartResponse {
+  bool success = 1;
+  optional string message = 2;
+}
+
+message AdminMonitoringPm2ToggleResponse {
+  bool success = 1;
+  AdminMonitoringPm2ToggleData data = 2;
+  optional string message = 3;
+}
+
+message AdminMonitoringPm2ToggleData {
+  bool is_enabled = 1;
+  bool is_streaming = 2;
+}
+
+message AdminSecurityEventsRequest {
+  optional int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  optional int32 limit = 2 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 100
+  }];
+  optional string type = 3 [(buf.validate.field).string.max_len = 64];
+  optional string severity = 4 [(buf.validate.field).string.max_len = 32];
+  optional string source = 5 [(buf.validate.field).string.max_len = 64];
+  optional string search = 6 [(buf.validate.field).string.max_len = 4000];
+  optional string start_date = 7 [(buf.validate.field).string.max_len = 64];
+  optional string end_date = 8 [(buf.validate.field).string.max_len = 64];
+}
+
+message AdminSecurityEventsResponse {
+  bool success = 1;
+  AdminSecurityEventsData data = 2;
+}
+
+message AdminSecurityEventsData {
+  repeated AdminSecurityEvent events = 1;
+  AdminSecurityPagination pagination = 2;
+}
+
+message AdminSecurityEvent {
+  string id = 1;
+  string type = 2;
+  string severity = 3;
+  string source = 4;
+  string description = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message AdminSecurityPagination {
+  int32 page = 1;
+  int32 limit = 2;
+  int64 total = 3;
+  int32 pages = 4;
+}
+
+message AdminSecuritySummaryResponse {
+  bool success = 1;
+  AdminSecuritySummaryData data = 2;
+}
+
+message AdminSecuritySummaryData {
+  AdminSecurityLast24Hours last24_hours = 1;
+  AdminSecurityLast7Days last7_days = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message AdminSecurityLast24Hours {
+  int64 critical = 1;
+  int64 high = 2;
+  int64 medium = 3;
+}
+
+message AdminSecurityLast7Days {
+  int64 total = 1;
+}
+
+message AdminSystemConfigResponse {
+  bool success = 1;
+  AdminSystemConfig data = 2;
+  optional string message = 3;
+}
+
+message AdminSystemConfig {
+  string id = 1;
+  string config_id = 2;
+  AdminSystemGeneralConfig general = 3;
+  AdminSystemLoggingConfig logging = 4;
+  AdminSystemSecurityConfig security = 5;
+  AdminSystemNotificationsConfig notifications = 6;
+  AdminSystemPerformanceConfig performance = 7;
+  AdminSystemFeaturesConfig features = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message AdminSystemGeneralConfig {
+  string system_name = 1;
+  string admin_email = 2;
+  string timezone = 3;
+  string default_language = 4;
+  bool maintenance_mode = 5;
+  string maintenance_message = 6;
+}
+
+message AdminSystemLoggingConfig {
+  bool pm2_logging_enabled = 1;
+  int32 log_retention_days = 2;
+  int32 max_log_size_per_day = 3;
+}
+
+message AdminSystemSecurityConfig {
+  int32 session_timeout = 1;
+  int32 max_login_attempts = 2;
+  int32 lockout_duration = 3;
+  bool require_two_factor = 4;
+  int32 password_min_length = 5;
+  bool password_require_special = 6;
+  repeated string ip_whitelist = 7;
+  repeated string cors_origins = 8;
+}
+
+message AdminSystemNotificationsConfig {
+  bool email_notifications = 1;
+  bool critical_alerts = 2;
+  bool weekly_reports = 3;
+  bool maintenance_alerts = 4;
+  string slack_webhook = 5;
+  string discord_webhook = 6;
+}
+
+message AdminSystemPerformanceConfig {
+  int32 cache_ttl = 1;
+  int32 rate_limit_requests = 2;
+  int32 rate_limit_window = 3;
+  int32 database_connection_pool = 4;
+  bool enable_compression = 5;
+  bool enable_caching = 6;
+}
+
+message AdminSystemFeaturesConfig {
+  bool analytics_enabled = 1;
+  bool audit_logging_enabled = 2;
+  bool api_access_enabled = 3;
+  bool bulk_operations_enabled = 4;
+  bool advanced_filtering = 5;
+  bool real_time_updates = 6;
+}
+
+message AdminSystemMaintenanceResponse {
+  bool success = 1;
+  AdminSystemMaintenanceStatus data = 2;
+  optional string message = 3;
+}
+
+message AdminSystemMaintenanceStatus {
+  bool is_active = 1;
+  optional string message = 2;
+}
+
+message AdminSystemRateLimitsResponse {
+  bool success = 1;
+  AdminSystemRateLimitsData data = 2;
+  optional string message = 3;
+}
+
+message AdminSystemRateLimitsUpdateResponse {
+  bool success = 1;
+  AdminSystemPerformanceConfig data = 2;
+  optional string message = 3;
+}
+
+message AdminSystemRateLimitsData {
+  AdminSystemPerformanceConfig current = 1;
+  bool active = 2;
+  google.protobuf.Timestamp reset_time = 3;
+}
+
+message AdminSystemPromptResponse {
+  bool success = 1;
+  optional AdminSystemPrompt data = 2;
+  optional string message = 3;
+}
+
+message AdminSystemPrompt {
+  string id = 1;
+  string prompt = 2;
+  bool is_active = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message AdminSystemServiceRestartResponse {
+  bool success = 1;
+  AdminSystemServiceRestartData data = 2;
+  optional string message = 3;
+}
+
+message AdminSystemServiceRestartData {
+  string service = 1;
+  string status = 2;
+  google.protobuf.Timestamp requested_at = 3;
 }

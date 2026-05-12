@@ -1,0 +1,140 @@
+syntax = "proto3";
+package modl.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+message PanelAuthResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message PanelSendEmailCodeRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+}
+
+message PanelVerifyEmailCodeRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+  string code = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+}
+
+message PanelUpdateProfileRequest {
+  optional string username = 1 [(buf.validate.field).string.max_len = 64];
+  optional string language = 2 [(buf.validate.field).string.max_len = 16];
+  optional string date_format = 3 [
+    json_name = "dateFormat",
+    (buf.validate.field).string.max_len = 64
+  ];
+}
+
+message PanelUpdateEmailRequest {
+  string new_email = 1 [
+    json_name = "newEmail",
+    (buf.validate.field).string = {
+      email: true
+      min_len: 1
+      max_len: 254
+    }
+  ];
+}
+
+message PanelUpdateEmailWithCodeRequest {
+  string new_email = 1 [
+    json_name = "newEmail",
+    (buf.validate.field).string = {
+      email: true
+      min_len: 1
+      max_len: 254
+    }
+  ];
+  string code = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 10
+  }];
+}
+
+message PanelProfileResponse {
+  optional string id = 1;
+  string email = 2;
+  string username = 3;
+  string role = 4;
+  string minecraft_username = 5 [json_name = "minecraftUsername"];
+  string language = 6;
+  string date_format = 7 [json_name = "dateFormat"];
+}
+
+message PanelSessionInfoResponse {
+  string id = 1;
+  string ip_address = 2 [json_name = "ipAddress"];
+  string user_agent = 3 [json_name = "userAgent"];
+  optional string created_at = 4 [json_name = "createdAt"];
+  optional string expires_at = 5 [json_name = "expiresAt"];
+  bool is_current = 6 [json_name = "isCurrent"];
+}
+
+message PanelPermissionsResponse {
+  repeated string permissions = 1;
+}
+
+message PanelSessionsResponse {
+  repeated PanelSessionInfoResponse sessions = 1;
+}
+
+message AdminRequestCodeRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+}
+
+message AdminLoginRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+  string code = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+}
+
+message AdminAuthResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AdminLoginResponse {
+  bool success = 1;
+  string message = 2;
+  optional AdminUserData data = 3;
+}
+
+message AdminUserData {
+  string email = 1;
+  optional google.protobuf.Timestamp last_activity_at = 2 [json_name = "lastActivityAt"];
+}
+
+message AdminSessionResponse {
+  bool success = 1;
+  optional AdminSessionData data = 2;
+}
+
+message AdminSessionData {
+  string email = 1;
+  optional google.protobuf.Timestamp last_activity_at = 2 [json_name = "lastActivityAt"];
+  repeated string logged_in_ips = 3 [json_name = "loggedInIps"];
+  bool is_authenticated = 4 [json_name = "isAuthenticated"];
+}

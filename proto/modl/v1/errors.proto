@@ -1,0 +1,22 @@
+syntax = "proto3";
+package modl.v1;
+
+message ApiError {
+  int32 status_code = 1;
+  string code = 2;
+  string message = 3;
+  repeated FieldViolation field_violations = 4;
+  optional string request_id = 5;
+  optional RetryMetadata retry_metadata = 6;
+}
+
+message FieldViolation {
+  string field = 1;
+  string message = 2;
+  optional string code = 3;
+}
+
+message RetryMetadata {
+  optional int64 retry_after_ms = 1;
+  optional int64 retry_after_seconds = 2;
+}

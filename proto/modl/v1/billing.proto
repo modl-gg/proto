@@ -1,6 +1,7 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
 message UsageBillingSettingsRequest {
@@ -8,12 +9,39 @@ message UsageBillingSettingsRequest {
 }
 
 message UpdateOverageLimitsRequest {
-  int32 max_storage_overage_gb = 1 [json_name = "maxStorageOverageGB"];
-  int32 max_ai_overage_requests = 2;
+  // Legacy implicit-presence field; v3 callers should use max_storage_overage_gb_value.
+  int32 max_storage_overage_gb = 1 [
+    json_name = "maxStorageOverageGB",
+    (buf.validate.field).int32 = {
+      gte: 0
+      lte: 2000
+    }
+  ];
+  // Legacy implicit-presence field; v3 callers should use max_ai_overage_requests_value.
+  int32 max_ai_overage_requests = 2 [(buf.validate.field).int32 = {
+    gte: 0
+    lte: 5000
+  }];
+  // Explicit-presence value for v3 callers; transport/controller code should prefer this when present.
+  optional int32 max_storage_overage_gb_value = 3 [
+    json_name = "maxStorageOverageGBValue",
+    (buf.validate.field).int32 = {
+      gte: 0
+      lte: 2000
+    }
+  ];
+  // Explicit-presence value for v3 callers; transport/controller code should prefer this when present.
+  optional int32 max_ai_overage_requests_value = 4 [
+    json_name = "maxAiOverageRequestsValue",
+    (buf.validate.field).int32 = {
+      gte: 0
+      lte: 5000
+    }
+  ];
 }
 
 message UpdateStorageLimitRequest {
-  int64 max_storage_limit_bytes = 1;
+  int64 max_storage_limit_bytes = 1 [(buf.validate.field).int64.gt = 0];
 }
 
 message PortalSessionResponse {
@@ -23,6 +51,17 @@ message PortalSessionResponse {
 message CheckoutSessionResponse {
   string session_id = 1;
   string url = 2;
+}
+
+message UpdateStorageLimitResponse {
+  bool success = 1;
+  int64 max_storage_limit_bytes = 2;
+}
+
+message UpdateOverageLimitsResponse {
+  bool success = 1;
+  int64 max_storage_limit_bytes = 2;
+  int32 max_ai_overage_requests = 3;
 }
 
 message UsageResponse {
@@ -48,13 +87,17 @@ message UsageResponse {
 }
 
 message BillingStatusResponse {
+  // Legacy implicit-presence field; use plan_value when null/empty must be preserved.
   string plan = 1;
+  // Legacy implicit-presence field; use subscription_status_value when null/empty must be preserved.
   string subscription_status = 2;
   google.protobuf.Timestamp current_period_start = 3;
   google.protobuf.Timestamp current_period_end = 4;
   optional bool custom_domain_grandfathered = 5;
   optional int64 max_storage_limit_bytes = 6;
   optional int64 max_ai_overage_requests = 7;
+  optional string plan_value = 8;
+  optional string subscription_status_value = 9;
 }
 
 message UsageBillingSettingsResponse {

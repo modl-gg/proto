@@ -2,6 +2,7 @@ syntax = "proto3";
 package modl.v1;
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 
 // --- Shared data types ---
@@ -24,6 +25,26 @@ message TicketNote {
   string issuer_name = 2;
   string issuer_avatar = 3;
   int64 date = 4;
+}
+
+message PublicTicketReply {
+  string id = 1;
+  string name = 2;
+  string avatar = 3;
+  string content = 4;
+  string type = 5;
+  google.protobuf.Timestamp created = 6;
+  bool staff = 7;
+  string action = 8;
+  repeated google.protobuf.Struct attachments = 9;
+  string creator_identifier = 10;
+}
+
+message PublicTicketNote {
+  string text = 1;
+  string issuer_name = 2;
+  string issuer_avatar = 3;
+  google.protobuf.Timestamp date = 4;
 }
 
 message TicketChatMessage {
@@ -236,6 +257,20 @@ message PaginatedTicketsResponse {
   }
 }
 
+message TicketCountsResponse {
+  int64 open = 1;
+  int64 closed = 2;
+}
+
+message BulkTicketUpdateResponse {
+  int32 updated = 1;
+  string message = 2;
+}
+
+message TicketTagsResponse {
+  repeated string tags = 1;
+}
+
 message QuickResponseResult {
   bool success = 1;
   string message = 2;
@@ -244,6 +279,13 @@ message QuickResponseResult {
   bool ticket_closed = 5;
   bool punishment_issued = 6;
   string appeal_outcome = 7;
+}
+
+message MinecraftCreateTicketResponse {
+  int32 status = 1;
+  bool success = 2;
+  string ticket_id = 3 [json_name = "ticketId"];
+  string message = 4;
 }
 
 message TicketsResponse {
@@ -269,6 +311,38 @@ message MinecraftTicketListItem {
   int32 reply_count = 15 [json_name = "replyCount"];
 }
 
+message MinecraftTicketDetailResponse {
+  int32 status = 1;
+  MinecraftTicketDetail ticket = 2;
+}
+
+message MinecraftTicketDetail {
+  string id = 1;
+  string type = 2;
+  string category = 3;
+  string subject = 4;
+  string status = 5;
+  string player_name = 6 [json_name = "playerName"];
+  string player_uuid = 7 [json_name = "playerUuid"];
+  string priority = 8;
+  repeated string assigned_to = 9 [json_name = "assignedTo"];
+  google.protobuf.Timestamp created_at = 10 [json_name = "createdAt"];
+  optional google.protobuf.Timestamp updated_at = 11 [json_name = "updatedAt"];
+  bool locked = 12;
+  repeated MinecraftTicketDetailReply replies = 13;
+  repeated google.protobuf.Struct chat_messages = 14 [json_name = "chatMessages"];
+  optional string replay_url = 15 [json_name = "replayUrl"];
+}
+
+message MinecraftTicketDetailReply {
+  string id = 1;
+  string content = 2;
+  string author_name = 3 [json_name = "authorName"];
+  string author_id = 4 [json_name = "authorId"];
+  bool is_staff = 5 [json_name = "isStaff"];
+  google.protobuf.Timestamp created_at = 6 [json_name = "createdAt"];
+}
+
 message ReportsResponse {
   int32 status = 1;
   repeated ReportEntry reports = 2;
@@ -289,6 +363,13 @@ message ReportEntry {
   int64 created_at = 12 [json_name = "createdAt"];
   repeated string assigned_to = 13 [json_name = "assignedTo"];
   repeated google.protobuf.Struct chat_messages = 14 [json_name = "chatMessages"];
+  optional string replay_url = 15 [json_name = "replayUrl"];
+}
+
+message MinecraftReportOperationResponse {
+  int32 status = 1;
+  bool success = 2;
+  string message = 3;
 }
 
 message CreateTicketResponse {
@@ -304,6 +385,82 @@ message CreateTicketResponse {
     optional string status = 4;
     optional string created = 5;
   }
+}
+
+message PublicTicketResponse {
+  string id = 1;
+  string id_alias = 2 [json_name = "_id"];
+  string type = 3;
+  string subject = 4;
+  string status = 5;
+  string creator_name = 6 [json_name = "creatorName"];
+  string creator = 7;
+  string creator_uuid = 8 [json_name = "creatorUuid"];
+  string reported_by = 9 [json_name = "reportedBy"];
+  google.protobuf.Timestamp created = 10;
+  google.protobuf.Timestamp date = 11;
+  string category = 12;
+  bool locked = 13;
+  repeated PublicTicketReply replies = 14;
+  repeated PublicTicketReply messages = 15;
+  repeated PublicTicketNote notes = 16;
+  repeated string tags = 17;
+  google.protobuf.Struct data = 18;
+  google.protobuf.Struct form_data = 19 [json_name = "formData"];
+  string reported_player = 20 [json_name = "reportedPlayer"];
+  string reported_player_uuid = 21 [json_name = "reportedPlayerUuid"];
+  repeated PublicTicketChatMessage chat_messages = 22 [json_name = "chatMessages"];
+  bool email_auth_enabled = 23 [json_name = "emailAuthEnabled"];
+
+  message PublicTicketChatMessage {
+    string content = 1;
+    google.protobuf.Timestamp timestamp = 2;
+  }
+}
+
+message TicketVerificationRequiredResponse {
+  bool requires_verification = 1 [json_name = "requiresVerification"];
+  string email_hint = 2 [json_name = "emailHint"];
+  string ticket_id = 3 [json_name = "ticketId"];
+}
+
+message PublicTicketStatusResponse {
+  string id = 1;
+  string type = 2;
+  string subject = 3;
+  string status = 4;
+  google.protobuf.Timestamp created = 5;
+  bool locked = 6;
+}
+
+message AddTicketReplyResponse {
+  bool success = 1;
+  string message = 2;
+  PublicTicketReply reply = 3;
+}
+
+message SubmitPublicTicketResponse {
+  bool success = 1;
+  string message = 2;
+  SubmitPublicTicketInfo ticket = 3;
+
+  message SubmitPublicTicketInfo {
+    string id = 1;
+    string subject = 2;
+    string status = 3;
+  }
+}
+
+message PublicTicketVerificationRequestResponse {
+  bool success = 1;
+  string message = 2;
+  string email_hint = 3 [json_name = "emailHint"];
+}
+
+message PublicTicketVerificationResponse {
+  bool success = 1;
+  string token = 2;
+  string message = 3;
 }
 
 message ClaimTicketResponse {
@@ -330,4 +487,25 @@ message TicketSubscriptionResponse {
   string ticket_id = 1;
   string ticket_title = 2;
   int64 subscribed_at = 3;
+}
+
+message TicketSubscriptionsResponse {
+  repeated TicketSubscriptionResponse subscriptions = 1;
+}
+
+message SubscriptionUpdatesResponse {
+  repeated SubscriptionUpdateResponse updates = 1;
+}
+
+message DeleteTicketSubscriptionResponse {
+  string message = 1;
+}
+
+message MarkSubscriptionUpdateReadResponse {
+  string message = 1;
+  bool modified = 2;
+}
+
+message MarkTicketSubscriptionReadResponse {
+  string message = 1;
 }

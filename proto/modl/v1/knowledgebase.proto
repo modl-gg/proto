@@ -1,29 +1,123 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
 message CreateCategoryRequest {
-  string name = 1;
-  optional string description = 2;
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+    pattern: "(?s).*\\S.*"
+  }];
+  optional string description = 2 [(buf.validate.field).string.max_len = 500];
 }
 
 message UpdateCategoryRequest {
-  optional string name = 1;
-  optional string description = 2;
+  optional string name = 1 [(buf.validate.field).string = {max_len: 128}];
+  optional string description = 2 [(buf.validate.field).string.max_len = 500];
   optional bool is_visible = 3;
 }
 
 message CreateArticleRequest {
-  string title = 1;
-  string content = 2;
+  string title = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 256
+    pattern: "(?s).*\\S.*"
+  }];
+  string content = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 50000
+    pattern: "(?s).*\\S.*"
+  }];
   optional bool is_visible = 3;
 }
 
 message UpdateArticleRequest {
-  optional string title = 1;
-  optional string content = 2;
+  optional string title = 1 [(buf.validate.field).string = {max_len: 256}];
+  optional string content = 2 [(buf.validate.field).string = {max_len: 50000}];
   optional bool is_visible = 3;
 }
 
 message ReorderRequest {
-  repeated string ids = 1;
+  repeated string ids = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 200
+    items: {
+      string: {
+        min_len: 1
+        max_len: 64
+        pattern: "(?s).*\\S.*"
+      }
+    }
+  }];
+}
+
+message KnowledgebaseArticleResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  string content = 4;
+  string category_id = 5;
+  int32 ordinal = 6;
+  bool is_visible = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message KnowledgebaseArticleStubResponse {
+  string id = 1;
+  string title = 2;
+  string slug = 3;
+  int32 ordinal = 4;
+}
+
+message KnowledgebaseCategoryResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+  int32 ordinal = 5;
+  bool is_visible = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message PanelKnowledgebaseCategoryWithArticlesResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+  int32 ordinal = 5;
+  bool is_visible = 6;
+  repeated KnowledgebaseArticleResponse articles = 7;
+}
+
+message PublicKnowledgebaseCategoryWithArticlesResponse {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  string description = 4;
+  int32 ordinal = 5;
+  repeated KnowledgebaseArticleStubResponse articles = 6;
+}
+
+message PanelKnowledgebaseCategoriesResponse {
+  repeated PanelKnowledgebaseCategoryWithArticlesResponse categories = 1;
+}
+
+message PublicKnowledgebaseCategoriesResponse {
+  repeated PublicKnowledgebaseCategoryWithArticlesResponse categories = 1;
+}
+
+message KnowledgebaseArticlesResponse {
+  repeated KnowledgebaseArticleResponse articles = 1;
+}
+
+message KnowledgebaseSearchResponse {
+  repeated KnowledgebaseArticleResponse articles = 1;
+}
+
+message KnowledgebaseMessageResponse {
+  string message = 1;
 }

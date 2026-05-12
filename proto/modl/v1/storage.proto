@@ -63,6 +63,24 @@ message UploadResponse {
   string content_type = 5 [json_name = "contentType"];
 }
 
+message EvidencePresignUploadEnvelopeResponse {
+  int32 status = 1;
+  string presigned_url = 2 [json_name = "presignedUrl"];
+  string key = 3;
+  google.protobuf.Timestamp expires_at = 4 [json_name = "expiresAt"];
+  string method = 5;
+  map<string, string> required_headers = 6 [json_name = "requiredHeaders"];
+}
+
+message EvidenceConfirmUploadEnvelopeResponse {
+  int32 status = 1;
+  string key = 2;
+  string url = 3;
+  string file_name = 4 [json_name = "fileName"];
+  int64 size = 5;
+  string content_type = 6 [json_name = "contentType"];
+}
+
 message StorageFileResponse {
   string key = 1;
   string name = 2;
@@ -70,6 +88,22 @@ message StorageFileResponse {
   string content_type = 4 [json_name = "contentType"];
   google.protobuf.Timestamp last_modified = 5 [json_name = "lastModified"];
   string url = 6;
+}
+
+message StorageFilesResponse {
+  repeated StorageFileResponse files = 1;
+}
+
+message StorageBulkDeleteResponse {
+  int32 deleted = 1;
+}
+
+message StorageSyncResponse {
+  int32 synced = 1;
+}
+
+message StorageDownloadUrlResponse {
+  string url = 1;
 }
 
 message StorageQuotaResponse {
@@ -82,6 +116,29 @@ message StorageQuotaResponse {
   AiQuotaInfo ai_quota = 7 [json_name = "aiQuota"];
   bool is_premium = 8 [json_name = "isPremium"];
   double storage_overage_rate = 9 [json_name = "storageOverageRate"];
+}
+
+message MediaConfigResponse {
+  bool backblaze_configured = 1 [json_name = "backblazeConfigured"];
+  map<string, MediaSupportedTypes> supported_types = 2 [json_name = "supportedTypes"];
+  map<string, int64> file_size_limits = 3 [json_name = "fileSizeLimits"];
+  optional string cdn_domain = 4 [json_name = "cdnDomain"];
+}
+
+message MediaSupportedTypes {
+  repeated string types = 1;
+}
+
+message EvidenceUploadTokenValidationResponse {
+  int32 status = 1;
+  string punishment_id = 2 [json_name = "punishmentId"];
+  string player_name = 3 [json_name = "playerName"];
+  string issuer_name = 4 [json_name = "issuerName"];
+}
+
+message EvidenceSubmitResponse {
+  int32 status = 1;
+  string message = 2;
 }
 
 message AiQuotaInfo {

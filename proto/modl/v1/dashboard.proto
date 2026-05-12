@@ -65,3 +65,15 @@ message RecentTicketResponse {
   string player_name = 7 [json_name = "playerName"];
   string type = 8;
 }
+
+message DashboardRecentTicketsResponse {
+  repeated RecentTicketResponse tickets = 1;
+}
+
+message DashboardRecentPunishmentsResponse {
+  repeated RecentPunishmentResponse punishments = 1;
+}
+
+message DashboardActivityResponse {
+  repeated ActivityItemResponse activity = 1;
+}

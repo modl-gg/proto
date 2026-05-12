@@ -1,0 +1,27 @@
+syntax = "proto3";
+package modl.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+message WebAuthnCredentialMetadata {
+  string id = 1;
+  string name = 2;
+  optional google.protobuf.Timestamp created_at = 3 [json_name = "createdAt"];
+  optional google.protobuf.Timestamp last_used_at = 4 [json_name = "lastUsedAt"];
+}
+
+message WebAuthnCredentialsResponse {
+  repeated WebAuthnCredentialMetadata credentials = 1;
+}
+
+message RenameWebAuthnCredentialRequest {
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+}
+
+message WebAuthnCredentialMutationResponse {
+  bool success = 1;
+}

@@ -1,0 +1,144 @@
+syntax = "proto3";
+package modl.v1;
+
+import "buf/validate/validate.proto";
+import "modl/v1/server.proto";
+
+message PublicRegistrationRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+  string server_name = 2 [
+    json_name = "serverName",
+    (buf.validate.field).string = {
+      min_len: 3
+      max_len: 100
+    }
+  ];
+  string custom_domain = 3 [
+    json_name = "customDomain",
+    (buf.validate.field).string = {
+      min_len: 3
+      max_len: 50
+      pattern: "^[a-z0-9-]+$"
+    }
+  ];
+  optional string plan = 4 [(buf.validate.field).string.max_len = 32];
+  string turnstile_token = 5 [
+    json_name = "turnstileToken",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 4096
+    }
+  ];
+}
+
+message PublicRegistrationResponse {
+  bool success = 1;
+  string message = 2;
+  optional ServerSummary server = 3;
+}
+
+message EmailVerificationTokenRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+  }];
+}
+
+message EmailVerificationResponse {
+  bool success = 1;
+  string message = 2;
+  optional string subdomain = 3;
+  optional string auto_login_token = 4 [json_name = "autoLoginToken"];
+}
+
+message SetupStatusRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+  }];
+}
+
+message SetupStatusResponse {
+  optional string subdomain = 1;
+  optional string server_name = 2 [json_name = "serverName"];
+  optional bool email_verified = 3 [json_name = "emailVerified"];
+  optional ProvisioningStatus provisioning_status = 4 [json_name = "provisioningStatus"];
+  optional string message = 5;
+}
+
+message AutoLoginRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+  }];
+}
+
+message AutoLoginResponse {
+  bool success = 1;
+  string message = 2;
+  optional string redirect_url = 3 [json_name = "redirectUrl"];
+}
+
+message CliRegistrationRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+  string server_name = 2 [
+    json_name = "serverName",
+    (buf.validate.field).string = {
+      min_len: 3
+      max_len: 100
+    }
+  ];
+  string custom_domain = 3 [
+    json_name = "customDomain",
+    (buf.validate.field).string = {
+      min_len: 3
+      max_len: 50
+      pattern: "^[a-z0-9-]+$"
+    }
+  ];
+  optional string plan = 4 [(buf.validate.field).string.max_len = 32];
+}
+
+message CliRegistrationResponse {
+  bool success = 1;
+  string message = 2;
+  optional ServerSummary server = 3;
+  optional string setup_token = 4 [json_name = "setupToken"];
+}
+
+message CliSetupStatusRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+  }];
+}
+
+message CliSetupStatusResponse {
+  bool success = 1;
+  optional bool email_verified = 2 [json_name = "emailVerified"];
+  optional ProvisioningStatus provisioning_status = 3 [json_name = "provisioningStatus"];
+  optional string api_key = 4 [json_name = "apiKey"];
+  optional string message = 5;
+}
+
+message ProvisioningTokenRequest {
+  string token = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+  }];
+}
+
+message RegistrationApiKeyResponse {
+  bool success = 1;
+  optional string api_key = 2 [json_name = "apiKey"];
+  optional string panel_url = 3 [json_name = "panelUrl"];
+  optional string message = 4;
+}

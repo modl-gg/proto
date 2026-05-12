@@ -1,9 +1,9 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
-import "buf/validate/validate.proto";
 
 // --- Requests ---
 
@@ -12,11 +12,21 @@ message ApplyAIPunishmentRequest {
 }
 
 message ConfigureDomainRequest {
-  string custom_domain = 1 [json_name = "customDomain", (buf.validate.field).string.min_len = 1];
+  string custom_domain = 1 [
+    json_name = "customDomain",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 255
+      pattern: "(?s).*\\S.*"
+    }
+  ];
 }
 
 message PatchGeneralSettingsRequest {
-  int64 expected_version = 1 [json_name = "expectedVersion", (buf.validate.field).int64.gte = 0];
+  int64 expected_version = 1 [
+    json_name = "expectedVersion",
+    (buf.validate.field).int64.gte = 0
+  ];
   optional string server_display_name = 2 [json_name = "serverDisplayName"];
   optional string discord_webhook_url = 3 [json_name = "discordWebhookUrl"];
   optional string homepage_icon_url = 4 [json_name = "homepageIconUrl"];
@@ -24,22 +34,34 @@ message PatchGeneralSettingsRequest {
 }
 
 message PatchQuickResponsesRequest {
-  int64 expected_version = 1 [json_name = "expectedVersion", (buf.validate.field).int64.gte = 0];
+  int64 expected_version = 1 [
+    json_name = "expectedVersion",
+    (buf.validate.field).int64.gte = 0
+  ];
   repeated QuickResponseCategory categories = 2;
 }
 
 message PatchStatusThresholdSettingsRequest {
-  int64 expected_version = 1 [json_name = "expectedVersion", (buf.validate.field).int64.gte = 0];
+  int64 expected_version = 1 [
+    json_name = "expectedVersion",
+    (buf.validate.field).int64.gte = 0
+  ];
   OffenderThresholdSettings settings = 2;
 }
 
 message PatchTicketFormSettingsRequest {
-  int64 expected_version = 1 [json_name = "expectedVersion", (buf.validate.field).int64.gte = 0];
+  int64 expected_version = 1 [
+    json_name = "expectedVersion",
+    (buf.validate.field).int64.gte = 0
+  ];
   TicketFormSettings settings = 2;
 }
 
 message PatchTicketLabelSettingsRequest {
-  int64 expected_version = 1 [json_name = "expectedVersion", (buf.validate.field).int64.gte = 0];
+  int64 expected_version = 1 [
+    json_name = "expectedVersion",
+    (buf.validate.field).int64.gte = 0
+  ];
   repeated Label labels = 2;
 }
 
@@ -71,7 +93,10 @@ message UpdateAIModerationSettingsRequest {
 message AIPunishmentConfigRequest {
   string id = 1 [(buf.validate.field).string.min_len = 1];
   string name = 2 [(buf.validate.field).string.min_len = 1];
-  string ai_description = 3 [json_name = "aiDescription", (buf.validate.field).string.min_len = 1];
+  string ai_description = 3 [
+    json_name = "aiDescription",
+    (buf.validate.field).string.min_len = 1
+  ];
   optional bool enabled = 4;
 }
 
@@ -115,7 +140,11 @@ message WebhookEmbedFieldRequest {
 }
 
 message VerifyDomainRequest {
-  string domain = 1 [(buf.validate.field).string.min_len = 1];
+  string domain = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+    pattern: "(?s).*\\S.*"
+  }];
 }
 
 // --- Responses ---
@@ -128,6 +157,59 @@ message PublicSettingsResponse {
   google.protobuf.Struct ticket_forms = 5 [json_name = "ticketForms"];
   bool maintenance_mode = 6 [json_name = "maintenanceMode"];
   string maintenance_message = 7 [json_name = "maintenanceMessage"];
+}
+
+message ApiKeyGenerateResponse {
+  string message = 1;
+  string api_key = 2 [json_name = "apiKey"];
+}
+
+message ApiKeyRevealResponse {
+  string api_key = 1 [json_name = "apiKey"];
+}
+
+message ApiKeyDeleteResponse {
+  string message = 1;
+}
+
+message ApiKeyExistsResponse {
+  bool exists = 1;
+}
+
+message WebhookTestResponse {
+  string message = 1;
+}
+
+message AISuggestionActionResponse {
+  bool success = 1;
+  string error = 2;
+  string message = 3;
+}
+
+message DomainSettings {
+  string custom_domain = 1 [json_name = "customDomain"];
+  DomainStatus status = 2;
+  bool accessing_from_custom_domain = 3 [json_name = "accessingFromCustomDomain"];
+  string modl_subdomain_url = 4 [json_name = "modlSubdomainUrl"];
+  bool can_manage_custom_domain = 5 [json_name = "canManageCustomDomain"];
+}
+
+message DomainStatus {
+  string domain = 1;
+  string status = 2;
+  bool cname_configured = 3 [json_name = "cnameConfigured"];
+  string ssl_status = 4 [json_name = "sslStatus"];
+  string last_checked = 5 [json_name = "lastChecked"];
+  string error = 6;
+}
+
+message VerifyDomainResponse {
+  DomainStatus status = 1;
+  string message = 2;
+}
+
+message RemoveDomainResponse {
+  string message = 1;
 }
 
 // --- Settings Data Types ---
@@ -347,4 +429,29 @@ message SettingsMeta {
 message SettingsEnvelope {
   google.protobuf.Struct data = 1;
   SettingsMeta _meta = 2;
+}
+
+message GeneralSettingsEnvelope {
+  GeneralSettings data = 1;
+  SettingsMeta meta = 2 [json_name = "_meta"];
+}
+
+message TicketLabelSettingsEnvelope {
+  TicketLabelSettings data = 1;
+  SettingsMeta meta = 2 [json_name = "_meta"];
+}
+
+message OffenderThresholdSettingsEnvelope {
+  OffenderThresholdSettings data = 1;
+  SettingsMeta meta = 2 [json_name = "_meta"];
+}
+
+message TicketFormSettingsEnvelope {
+  TicketFormSettings data = 1;
+  SettingsMeta meta = 2 [json_name = "_meta"];
+}
+
+message QuickResponseSettingsEnvelope {
+  QuickResponseSettings data = 1;
+  SettingsMeta meta = 2 [json_name = "_meta"];
 }

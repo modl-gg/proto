@@ -1,9 +1,8 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/struct.proto";
 import "buf/validate/validate.proto";
-import "modl/v1/common.proto";
+import "google/protobuf/struct.proto";
 
 // --- Shared data types ---
 
@@ -42,17 +41,37 @@ message PunishmentNote {
 // --- Requests ---
 
 message CreatePunishmentRequest {
-  string target_uuid = 1 [(buf.validate.field).string.min_len = 1];
-  optional string issuer_name = 2;
-  optional string issuer_id = 3;
-  int32 type_ordinal = 4 [json_name = "type_ordinal", (buf.validate.field).int32.gte = 0];
-  optional string reason = 5;
-  optional int64 duration = 6;
+  string target_uuid = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 36
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  }];
+  optional string issuer_name = 2 [(buf.validate.field).string.max_len = 64];
+  optional string issuer_id = 3 [(buf.validate.field).string.max_len = 64];
+  int32 type_ordinal = 4 [
+    json_name = "type_ordinal",
+    (buf.validate.field).int32.gte = 0
+  ];
+  optional string reason = 5 [(buf.validate.field).string.max_len = 1000];
+  optional int64 duration = 6 [(buf.validate.field).int64.gte = 0];
   optional google.protobuf.Struct data = 7;
-  repeated string notes = 8;
-  repeated string attached_ticket_ids = 9;
-  optional string severity = 10;
-  optional string status = 11;
+  repeated string notes = 8 [(buf.validate.field).repeated = {
+    max_items: 50
+    items: {
+      string: {max_len: 4000}
+    }
+  }];
+  repeated string attached_ticket_ids = 9 [(buf.validate.field).repeated = {
+    max_items: 50
+    items: {
+      string: {
+        max_len: 64
+        pattern: "(?s).*\\S.*"
+      }
+    }
+  }];
+  optional string severity = 10 [(buf.validate.field).string.max_len = 32];
+  optional string status = 11 [(buf.validate.field).string.max_len = 32];
 }
 
 message PanelCreatePunishmentRequest {
@@ -89,10 +108,19 @@ message CreateEvidenceRequest {
 }
 
 message PardonPunishmentRequest {
-  optional string issuer_name = 1;
-  optional string issuer_id = 2;
-  optional string reason = 3;
-  optional string expected_type = 4;
+  optional string issuer_name = 1 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string issuer_id = 2 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string reason = 3 [(buf.validate.field).string.max_len = 500];
+  optional string expected_type = 4 [
+    json_name = "expectedType",
+    (buf.validate.field).string.max_len = 64
+  ];
 }
 
 message PardonPlayerRequest {
@@ -104,60 +132,275 @@ message PardonPlayerRequest {
 }
 
 message AddPunishmentNoteRequest {
-  string punishment_id = 1;
-  string issuer_name = 2;
-  string issuer_id = 3;
-  string note = 4 [(buf.validate.field).string.min_len = 1];
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string note = 4 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 4000
+    pattern: "(?s).*\\S.*"
+  }];
+}
+
+message AddPunishmentNoteResponse {
+  int32 status = 1;
+  optional bool success = 2;
+  string message = 3;
 }
 
 message AddPunishmentEvidenceRequest {
-  string punishment_id = 1;
-  string issuer_name = 2;
-  string issuer_id = 3;
-  string evidence_url = 4 [(buf.validate.field).string.min_len = 1];
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string evidence_url = 4 [
+    json_name = "evidenceUrl",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 2048
+      pattern: "(?s).*\\S.*"
+    }
+  ];
+}
+
+message AddPunishmentEvidenceResponse {
+  int32 status = 1;
+  optional bool success = 2;
+  string message = 3;
 }
 
 message ChangePunishmentDurationRequest {
-  string punishment_id = 1;
-  string issuer_name = 2;
-  string issuer_id = 3;
-  optional int64 new_duration = 4;
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional int64 new_duration = 4 [
+    json_name = "newDuration",
+    (buf.validate.field).int64.gte = 0
+  ];
+}
+
+message ChangePunishmentDurationResponse {
+  int32 status = 1;
+  optional bool success = 2;
+  string message = 3;
 }
 
 message TogglePunishmentOptionRequest {
-  string punishment_id = 1;
-  string issuer_name = 2;
-  string issuer_id = 3;
-  string option = 4;
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string option = 4 [
+    json_name = "option",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 64
+      pattern: "(?s).*\\S.*"
+    }
+  ];
   bool enabled = 5;
 }
 
+message TogglePunishmentOptionResponse {
+  int32 status = 1;
+  optional bool success = 2;
+  string message = 3;
+}
+
 message PunishmentAcknowledgeRequest {
-  string punishment_id = 1;
-  string player_uuid = 2;
-  string executed_at = 3;
-  optional string error_message = 4;
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 64
+      pattern: "(?s).*\\S.*"
+    }
+  ];
+  string player_uuid = 2 [
+    json_name = "playerUuid",
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    }
+  ];
+  string executed_at = 3 [
+    json_name = "executedAt",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string error_message = 4 [
+    json_name = "errorMessage",
+    (buf.validate.field).string.max_len = 500
+  ];
   bool success = 5;
 }
 
 message StatWipeAcknowledgeRequest {
-  string punishment_id = 1;
-  optional string server_name = 2;
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 64
+      pattern: "(?s).*\\S.*"
+    }
+  ];
+  optional string server_name = 2 [
+    json_name = "serverName",
+    (buf.validate.field).string.max_len = 64
+  ];
   bool success = 3;
 }
 
 message CreateEvidenceUploadTokenRequest {
-  optional string issuer_name = 1;
-  optional string issuer_id = 2;
+  optional string issuer_name = 1 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string issuer_id = 2 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
 }
 
 message ModifyPunishmentTicketsRequest {
-  string punishment_id = 1;
-  string issuer_name = 2;
-  string issuer_id = 3;
-  repeated string add_ticket_ids = 4;
-  repeated string remove_ticket_ids = 5;
+  string punishment_id = 1 [
+    json_name = "punishmentId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  repeated string add_ticket_ids = 4 [
+    json_name = "addTicketIds",
+    (buf.validate.field).repeated = {
+      max_items: 50
+      items: {
+        string: {
+          max_len: 64
+          pattern: "(?s).*\\S.*"
+        }
+      }
+    }
+  ];
+  repeated string remove_ticket_ids = 5 [
+    json_name = "removeTicketIds",
+    (buf.validate.field).repeated = {
+      max_items: 50
+      items: {
+        string: {
+          max_len: 64
+          pattern: "(?s).*\\S.*"
+        }
+      }
+    }
+  ];
   bool modify_associated_tickets = 6;
+}
+
+message PanelAddModificationRequest {
+  string type = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+  optional string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional int64 effective_duration = 4 [
+    json_name = "effectiveDuration",
+    (buf.validate.field).int64.gte = 0
+  ];
+  optional string reason = 5 [(buf.validate.field).string.max_len = 500];
+  optional string appeal_ticket_id = 6 [
+    json_name = "appealTicketId",
+    (buf.validate.field).string.max_len = 64
+  ];
+}
+
+message PanelAddPunishmentNoteRequest {
+  string text = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 4000
+  }];
+  optional string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+}
+
+message PanelAddEvidenceRequest {
+  optional string text = 1 [(buf.validate.field).string.max_len = 4000];
+  string type = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 64
+  }];
+  optional string issuer_name = 3 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string issuer_id = 4 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string url = 5 [(buf.validate.field).string.max_len = 2048];
+  optional string file_name = 6 [
+    json_name = "fileName",
+    (buf.validate.field).string.max_len = 255
+  ];
+  optional string file_type = 7 [
+    json_name = "fileType",
+    (buf.validate.field).string.max_len = 128
+  ];
+  optional int64 file_size = 8 [
+    json_name = "fileSize",
+    (buf.validate.field).int64.gte = 0
+  ];
 }
 
 // --- Responses ---
@@ -192,6 +435,17 @@ message PunishmentCreateResponse {
   int32 status = 3;
 }
 
+message PunishmentAcknowledgeResponse {
+  string message = 1;
+  int32 status = 2;
+}
+
+message StatWipeAcknowledgeResponse {
+  int32 status = 1;
+  bool success = 2;
+  string message = 3;
+}
+
 message PunishmentDetailResponse {
   PunishmentDetailEntry punishment = 1;
   int32 status = 2;
@@ -209,6 +463,7 @@ message PunishmentDetailResponse {
     repeated google.protobuf.Struct notes = 10;
     repeated google.protobuf.Struct evidence = 11;
     int32 type_ordinal = 12;
+    repeated string attached_ticket_ids = 13;
   }
 }
 
@@ -264,6 +519,12 @@ message PardonResponse {
 message EvidenceUploadTokenResponse {
   string token = 1;
   int32 status = 2;
+}
+
+message ModifyPunishmentTicketsResponse {
+  int32 status = 1;
+  optional bool success = 2;
+  string message = 3;
 }
 
 message PaginatedPunishmentsResponse {

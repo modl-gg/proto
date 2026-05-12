@@ -1,8 +1,8 @@
 syntax = "proto3";
 package modl.v1;
 
-import "google/protobuf/struct.proto";
 import "buf/validate/validate.proto";
+import "google/protobuf/struct.proto";
 import "modl/v1/common.proto";
 import "modl/v1/punishment.proto";
 
@@ -66,18 +66,24 @@ message SimplePunishment {
 // --- Requests ---
 
 message CreatePlayerRequest {
-  string minecraft_uuid = 1 [json_name = "minecraftUuid", (buf.validate.field).string = {
-    min_len: 1,
-    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-  }];
+  string minecraft_uuid = 1 [
+    json_name = "minecraftUuid",
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    }
+  ];
   string username = 2 [(buf.validate.field).string = {
-    min_len: 1,
+    min_len: 1
     pattern: "^[a-zA-Z0-9_]{1,16}$"
   }];
 }
 
 message PlayerLoginRequest {
-  string minecraft_uuid = 1 [json_name = "minecraftUUID", (buf.validate.field).string.min_len = 1];
+  string minecraft_uuid = 1 [
+    json_name = "minecraftUUID",
+    (buf.validate.field).string.min_len = 1
+  ];
   string username = 2 [(buf.validate.field).string.min_len = 1];
   optional string ip_address = 3 [json_name = "ip"];
   optional string skin_hash = 4 [json_name = "skinHash"];
@@ -106,20 +112,32 @@ message PlayerLookupRequest {
 }
 
 message AddPlayerIpRequest {
-  string ip_address = 1 [json_name = "ipAddress", (buf.validate.field).string.min_len = 1];
+  string ip_address = 1 [
+    json_name = "ipAddress",
+    (buf.validate.field).string.min_len = 1
+  ];
 }
 
 message AddPlayerUsernameRequest {
   string username = 1 [(buf.validate.field).string = {
-    min_len: 1,
+    min_len: 1
     pattern: "^[a-zA-Z0-9_]{1,16}$"
   }];
 }
 
 message CreatePlayerNoteRequest {
-  string text = 1 [(buf.validate.field).string = {min_len: 1, max_len: 4000}];
-  optional string issuer_name = 2 [json_name = "issuerName", (buf.validate.field).string.max_len = 64];
-  optional string issuer_id = 3 [json_name = "issuerId", (buf.validate.field).string.max_len = 64];
+  string text = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 4000
+  }];
+  optional string issuer_name = 2 [
+    json_name = "issuerName",
+    (buf.validate.field).string.max_len = 64
+  ];
+  optional string issuer_id = 3 [
+    json_name = "issuerId",
+    (buf.validate.field).string.max_len = 64
+  ];
   optional string date = 4;
 }
 
@@ -142,27 +160,55 @@ message UpdatePlayerServerRequest {
 // --- Chat & Command Logs ---
 
 message ChatLogEntry {
-  string uuid = 1;
-  string username = 2;
-  string message = 3;
-  string server = 4;
-  int64 timestamp = 5;
+  string uuid = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  }];
+  string username = 2 [(buf.validate.field).string = {
+    min_len: 2
+    max_len: 16
+    pattern: "^[a-zA-Z0-9_.]{2,16}$"
+  }];
+  string message = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+    pattern: "(?s).*\\S.*"
+  }];
+  string server = 4 [(buf.validate.field).string.max_len = 64];
+  int64 timestamp = 5 [(buf.validate.field).int64.gte = 0];
 }
 
 message ChatLogBatchRequest {
-  repeated ChatLogEntry entries = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 500}];
+  repeated ChatLogEntry entries = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 500
+  }];
 }
 
 message CommandLogEntry {
-  string uuid = 1;
-  string username = 2;
-  string command = 3;
-  string server = 4;
-  int64 timestamp = 5;
+  string uuid = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  }];
+  string username = 2 [(buf.validate.field).string = {
+    min_len: 2
+    max_len: 16
+    pattern: "^[a-zA-Z0-9_.]{2,16}$"
+  }];
+  string command = 3 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 512
+    pattern: "(?s).*\\S.*"
+  }];
+  string server = 4 [(buf.validate.field).string.max_len = 64];
+  int64 timestamp = 5 [(buf.validate.field).int64.gte = 0];
 }
 
 message CommandLogBatchRequest {
-  repeated CommandLogEntry entries = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 500}];
+  repeated CommandLogEntry entries = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 500
+  }];
 }
 
 // --- Responses ---
@@ -338,4 +384,25 @@ message LinkedAccountResponse {
   int32 active_bans = 3 [json_name = "activeBans"];
   int32 active_mutes = 4 [json_name = "activeMutes"];
   optional string last_linked_update = 5 [json_name = "lastLinkedUpdate"];
+}
+
+message PanelLinkedAccountsResponse {
+  repeated LinkedAccountResponse linked_accounts = 1 [json_name = "linkedAccounts"];
+}
+
+message PanelFindAndLinkAccountsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 linked_accounts_found = 3 [json_name = "linkedAccountsFound"];
+}
+
+message PanelLinkedBanEntry {
+  string punishment_id = 1 [json_name = "punishmentId"];
+  string player_uuid = 2 [json_name = "playerUuid"];
+  string player_name = 3 [json_name = "playerName"];
+  bool active = 4;
+}
+
+message PanelLinkedBansResponse {
+  repeated PanelLinkedBanEntry linked_bans = 1 [json_name = "linkedBans"];
 }

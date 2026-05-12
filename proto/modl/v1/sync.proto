@@ -1,6 +1,7 @@
 syntax = "proto3";
 package modl.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/struct.proto";
 import "modl/v1/player.proto";
 
@@ -154,9 +155,31 @@ message StartupResponse {
 // --- Acknowledgments ---
 
 message AcknowledgeNotificationsRequest {
-  string player_uuid = 1;
-  string acknowledged_at = 2;
-  repeated string notification_ids = 3;
+  string player_uuid = 1 [
+    json_name = "playerUuid",
+    (buf.validate.field).string = {
+      min_len: 1
+      pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    }
+  ];
+  string acknowledged_at = 2 [
+    json_name = "acknowledgedAt",
+    (buf.validate.field).string.max_len = 64
+  ];
+  repeated string notification_ids = 3 [
+    json_name = "notificationIds",
+    (buf.validate.field).repeated = {
+      min_items: 1
+      max_items: 100
+      items: {
+        string: {
+          min_len: 1
+          max_len: 64
+          pattern: "(?s).*\\S.*"
+        }
+      }
+    }
+  ];
 }
 
 message AcknowledgeStatWipeRequest {

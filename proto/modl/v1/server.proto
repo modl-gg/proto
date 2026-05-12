@@ -1,0 +1,285 @@
+syntax = "proto3";
+package modl.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+enum ProvisioningStatus {
+  PROVISIONING_STATUS_UNSPECIFIED = 0;
+  PROVISIONING_STATUS_PENDING = 1;
+  PROVISIONING_STATUS_IN_PROGRESS = 2;
+  PROVISIONING_STATUS_COMPLETED = 3;
+  PROVISIONING_STATUS_FAILED = 4;
+}
+
+message ServerSummary {
+  string id = 1;
+  string name = 2;
+}
+
+message ServerRegisterRequest {
+  string email = 1 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+  string server_name = 2 [
+    json_name = "serverName",
+    (buf.validate.field).string = {
+      min_len: 3
+      max_len: 50
+      pattern: "^[a-zA-Z0-9 -]+$"
+    }
+  ];
+  string custom_domain = 3 [
+    json_name = "customDomain",
+    (buf.validate.field).string = {
+      min_len: 3
+      max_len: 20
+      pattern: "^[a-z0-9-]+$"
+    }
+  ];
+  string turnstile_token = 4 [
+    json_name = "turnstileToken",
+    (buf.validate.field).string = {
+      min_len: 1
+      max_len: 4096
+    }
+  ];
+}
+
+message ServerRegisterResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ServerAvailabilityRequest {
+  optional string email = 1 [(buf.validate.field).string.max_len = 254];
+  optional string server_name = 2 [
+    json_name = "serverName",
+    (buf.validate.field).string.max_len = 100
+  ];
+  optional string custom_domain = 3 [
+    json_name = "customDomain",
+    (buf.validate.field).string.max_len = 50
+  ];
+}
+
+message ServerAvailabilityResponse {
+  bool email_available = 1 [json_name = "emailAvailable"];
+  bool name_available = 2 [json_name = "nameAvailable"];
+  bool subdomain_available = 3 [json_name = "subdomainAvailable"];
+  optional string message = 4;
+}
+
+message ProvisioningStatusResponse {
+  ProvisioningStatus status = 1;
+  string server_name = 2 [json_name = "serverName"];
+  bool email_verified = 3 [json_name = "emailVerified"];
+}
+
+message AdminServerListRequest {
+  optional int32 page = 1 [(buf.validate.field).int32.gte = 1];
+  optional int32 limit = 2 [(buf.validate.field).int32 = {
+    gte: 1
+    lte: 100
+  }];
+  optional string search = 3 [(buf.validate.field).string.max_len = 256];
+  optional string plan = 4 [(buf.validate.field).string.max_len = 32];
+  optional string status = 5 [(buf.validate.field).string.max_len = 32];
+  optional string sort = 6 [(buf.validate.field).string.max_len = 64];
+  optional string order = 7 [(buf.validate.field).string.max_len = 16];
+}
+
+message AdminServerUsageBatchRequest {
+  repeated string server_ids = 1 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 50
+  }];
+  optional bool force_refresh = 2;
+}
+
+message AdminServerCreateRequest {
+  string server_name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 128
+  }];
+  string custom_domain = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 255
+  }];
+  string admin_email = 3 [(buf.validate.field).string = {
+    email: true
+    min_len: 1
+    max_len: 254
+  }];
+  optional string plan = 4 [(buf.validate.field).string.max_len = 32];
+}
+
+message AdminServerUpdateStatsRequest {
+  optional int32 user_count = 1 [(buf.validate.field).int32.gte = 0];
+  optional int32 ticket_count = 2 [(buf.validate.field).int32.gte = 0];
+  optional google.protobuf.Timestamp last_activity_at = 3;
+}
+
+message AdminServerBulkOperationRequest {
+  string action = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 32
+  }];
+  repeated string server_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    max_items: 50
+  }];
+  optional AdminServerBulkOperationParameters parameters = 3;
+}
+
+message AdminServerBulkOperationParameters {
+  optional string plan = 1 [(buf.validate.field).string.max_len = 32];
+}
+
+message AdminServerSearchRequest {
+  optional string query = 1 [(buf.validate.field).string.max_len = 256];
+  optional AdminServerFilters filters = 2;
+}
+
+message AdminServerExportRequest {
+  optional string format = 1 [(buf.validate.field).string.max_len = 16];
+  optional AdminServerFilters filters = 2;
+}
+
+message AdminServerFilters {
+  optional string plan = 1 [(buf.validate.field).string.max_len = 32];
+  optional string status = 2 [(buf.validate.field).string.max_len = 32];
+}
+
+message AdminServerRecord {
+  string id = 1;
+  string server_name = 2;
+  string custom_domain = 3;
+  optional string database_name = 4;
+  string admin_email = 5;
+  bool email_verified = 6;
+  optional string provisioning_status = 7;
+  optional string provisioning_notes = 8;
+  string plan = 9;
+  optional string subscription_status = 10;
+  optional google.protobuf.Timestamp current_period_start = 11;
+  optional google.protobuf.Timestamp current_period_end = 12;
+  optional string stripe_customer_id = 13;
+  optional string stripe_subscription_id = 14;
+  optional double cdn_usage_current_period = 15;
+  optional int64 ai_requests_current_period = 16;
+  optional bool usage_billing_enabled = 17;
+  optional google.protobuf.Timestamp usage_billing_updated_at = 18;
+  optional int64 storage_used_bytes = 19;
+  optional int64 max_storage_limit_bytes = 20;
+  optional int64 max_ai_overage_requests = 21;
+  optional int64 migration_file_size_limit = 22;
+  optional string custom_domain_override = 23;
+  optional string custom_domain_status = 24;
+  optional google.protobuf.Timestamp custom_domain_last_checked = 25;
+  optional string custom_domain_error = 26;
+  optional string custom_domain_cloudflare_id = 27;
+  optional bool custom_domain_grandfathered = 28;
+  optional int64 online_player_count = 29;
+  optional int64 user_count = 30;
+  optional int64 ticket_count = 31;
+  optional google.protobuf.Timestamp last_stats_updated_at = 32;
+  optional google.protobuf.Timestamp last_activity_at = 33;
+  optional google.protobuf.Timestamp created_at = 34;
+  optional google.protobuf.Timestamp updated_at = 35;
+  optional google.protobuf.Timestamp staff_permissions_updated_at = 36;
+  optional google.protobuf.Timestamp punishment_types_updated_at = 37;
+}
+
+message AdminServerPagination {
+  int32 page = 1;
+  int32 limit = 2;
+  int64 total = 3;
+  int32 pages = 4;
+}
+
+message AdminServerListResponse {
+  bool success = 1;
+  AdminServerListData data = 2;
+}
+
+message AdminServerListData {
+  repeated AdminServerRecord servers = 1;
+  AdminServerPagination pagination = 2;
+}
+
+message AdminServerDetailResponse {
+  bool success = 1;
+  AdminServerRecord data = 2;
+}
+
+message AdminServerStatsResponse {
+  bool success = 1;
+  AdminServerStats data = 2;
+}
+
+message AdminServerStats {
+  int64 total_players = 1;
+  int64 total_tickets = 2;
+  int64 total_logs = 3;
+  google.protobuf.Timestamp last_activity = 4;
+  int64 database_size = 5;
+}
+
+message AdminServerUsageBatchResponse {
+  bool success = 1;
+  AdminServerUsageBatchData data = 2;
+}
+
+message AdminServerUsageBatchData {
+  map<string, AdminServerUsageSummary> usage = 1;
+}
+
+message AdminServerUsageSummary {
+  int64 user_count = 1;
+  int64 ticket_count = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  bool from_cache = 4;
+}
+
+message AdminServerMutationResponse {
+  bool success = 1;
+  optional AdminServerRecord data = 2;
+  optional string message = 3;
+}
+
+message AdminServerBulkOperationResponse {
+  bool success = 1;
+  AdminServerBulkOperationData data = 2;
+  optional string message = 3;
+}
+
+message AdminServerBulkOperationData {
+  string action = 1;
+  int64 affected_count = 2;
+  repeated string server_ids = 3;
+}
+
+message AdminServerSearchResponse {
+  bool success = 1;
+  AdminServerSearchData data = 2;
+}
+
+message AdminServerSearchData {
+  repeated AdminServerRecord servers = 1;
+  int64 total = 2;
+}
+
+message AdminServerExportResponse {
+  bool success = 1;
+  AdminServerExportData data = 2;
+}
+
+message AdminServerExportData {
+  repeated AdminServerRecord servers = 1;
+  google.protobuf.Timestamp exported_at = 2;
+  string format = 3;
+  int32 count = 4;
+}

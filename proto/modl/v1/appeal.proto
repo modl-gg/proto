@@ -57,5 +57,28 @@ message PublicAppealResponse {
   google.protobuf.Struct data = 13;
 }
 
+message CreatePublicAppealResponse {
+  bool success = 1;
+  string appeal_id = 2 [json_name = "appealId"];
+  string message = 3;
+  CreatePublicAppealInfo appeal = 4;
+
+  message CreatePublicAppealInfo {
+    string id = 1;
+    string id_alias = 2 [json_name = "_id"];
+    string type = 3;
+    string subject = 4;
+    string status = 5;
+    string appeal_workflow_status = 6 [json_name = "appealWorkflowStatus"];
+    string created = 7;
+  }
+}
+
+message AddPublicAppealReplyResponse {
+  bool success = 1;
+  string message = 2;
+  PublicTicketReply reply = 3;
+}
+
 // TicketReply, TicketNote, AIAnalysisResult, ChatMessage, TicketResponse
 // are defined in ticket.proto and imported above.
