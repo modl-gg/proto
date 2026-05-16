@@ -88,18 +88,41 @@ message CreateTicketRequest {
 }
 
 message MinecraftCreateTicketRequest {
-  string creator_uuid = 1;
-  optional string creator_name = 2;
-  string type = 3;
-  optional string subject = 4;
-  optional string description = 5;
-  optional string reported_player_uuid = 6;
-  optional string reported_player_name = 7;
-  repeated string chat_messages = 8;
-  repeated string tags = 9;
-  optional string priority = 10;
-  optional string created_server = 11;
-  optional string replay_url = 12;
+  string creator_uuid = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  }];
+  optional string creator_name = 2 [(buf.validate.field).string = {
+    max_len: 16
+    pattern: "^[a-zA-Z0-9_.]{2,16}$"
+  }];
+  string type = 3 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "(?i)^(bug|bug[ _-]?report|player|player[ _-]?report|chat|chat[ _-]?report|appeal|ban[ _-]?appeal|application|staff|staff[ _-]?application|apply|support|general[ _-]?support)$"
+  }];
+  optional string subject = 4 [(buf.validate.field).string.max_len = 256];
+  optional string description = 5 [(buf.validate.field).string.max_len = 10000];
+  optional string reported_player_uuid = 6 [(buf.validate.field).string.pattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"];
+  optional string reported_player_name = 7 [(buf.validate.field).string.max_len = 16];
+  repeated string chat_messages = 8 [(buf.validate.field).repeated = {
+    max_items: 50
+    items: {
+      string: {
+        max_len: 512
+      }
+    }
+  }];
+  repeated string tags = 9 [(buf.validate.field).repeated = {
+    max_items: 20
+    items: {
+      string: {
+        max_len: 64
+      }
+    }
+  }];
+  optional string priority = 10 [(buf.validate.field).string.pattern = "(?i)^(low|minor|normal|medium|default|standard|high|urgent|critical|highest)$"];
+  optional string created_server = 11 [(buf.validate.field).string.max_len = 64];
+  optional string replay_url = 12 [(buf.validate.field).string.max_len = 2048];
 }
 
 message SubmitTicketFormRequest {
@@ -145,7 +168,7 @@ message AddTagRequest {
 }
 
 message AssignReportRequest {
-  string assignee = 1;
+  string assignee = 1 [(buf.validate.field).string = {min_len: 1, max_len: 256}];
 }
 
 message BulkTicketUpdateRequest {
@@ -167,23 +190,38 @@ message QuickResponseRequest {
 }
 
 message DismissReportRequest {
-  string dismissed_by = 1;
-  optional string reason = 2;
+  string dismissed_by = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  optional string reason = 2 [(buf.validate.field).string.max_len = 500];
 }
 
 message ResolveReportRequest {
-  string resolved_by = 1;
-  string resolution = 2;
-  string punishment_id = 3;
+  string resolved_by = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string resolution = 2 [(buf.validate.field).string.max_len = 500];
+  string punishment_id = 3 [(buf.validate.field).string = {min_len: 1, max_len: 32}];
 }
 
 message MinecraftClaimTicketRequest {
-  string player_uuid = 1;
-  string player_name = 2;
+  string player_uuid = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+  }];
+  string player_name = 2 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 16
+    pattern: "^[a-zA-Z0-9_.]{2,16}$"
+  }];
 }
 
 message MinecraftTicketsByIdsRequest {
-  repeated string ids = 1;
+  repeated string ids = 1 [(buf.validate.field).repeated = {
+    max_items: 100
+    items: {
+      string: {
+        min_len: 1
+        max_len: 64
+      }
+    }
+  }];
 }
 
 message VerifyTicketCodeRequest {

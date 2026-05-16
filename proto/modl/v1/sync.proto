@@ -150,6 +150,10 @@ message StartupResponse {
   string panel_url = 1;
   string timestamp = 2;
   string server_instance_id = 3 [json_name = "serverInstanceId"];
+  bool realtime_enabled = 4 [json_name = "realtimeEnabled"];
+  optional string realtime_url = 5 [json_name = "realtimeUrl"];
+  int32 realtime_protocol_version = 6 [json_name = "realtimeProtocolVersion"];
+  repeated string realtime_topics = 7 [json_name = "realtimeTopics"];
 }
 
 // --- Acknowledgments ---

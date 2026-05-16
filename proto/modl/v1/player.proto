@@ -29,6 +29,7 @@ message NoteEntry {
   string date = 2;
   string issuer_name = 3 [json_name = "issuerName"];
   string issuer_id = 4 [json_name = "issuerId"];
+  string id = 5;
 }
 
 message BackendNoteEntry {
@@ -296,6 +297,7 @@ message PlayerProfileResponse {
 message PlayerNoteCreateResponse {
   string message = 1;
   int32 status = 2;
+  bool success = 3;
 }
 
 message PaginatedNotesResponse {
